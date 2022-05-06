@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="1080.0" prefWidth="1920.0" style="-fx-background-color: #d4fbff;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="store.bubbletill.pos.controllers.LoginController">
+   <children>
+      <ImageView fitHeight="818.0" fitWidth="533.0" layoutX="695.0" layoutY="289.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@logo.png" />
+         </image>
+      </ImageView>
+      <Pane layoutX="653.0" layoutY="515.0" prefHeight="295.0" prefWidth="616.0" style="-fx-background-color: #ffffff;">
+         <children>
+            <TextField fx:id="userIdForm" layoutX="185.0" layoutY="35.0" onKeyReleased="#onUIDKeyPress" prefHeight="38.0" prefWidth="382.0">
+               <font>
+                  <Font size="18.0" />
+               </font>
+            </TextField>
+            <PasswordField fx:id="passwordForm" layoutX="185.0" layoutY="90.0" onKeyReleased="#onPasswordKeyPress" prefHeight="38.0" prefWidth="382.0">
+               <font>
+                  <Font size="18.0" />
+               </font></PasswordField>
+            <Label layoutX="14.0" layoutY="26.0" prefHeight="45.0" prefWidth="164.0" text="User ID">
+               <font>
+                  <Font size="30.0" />
+               </font></Label>
+            <Label layoutX="14.0" layoutY="87.0" prefHeight="38.0" prefWidth="144.0" text="Password">
+               <font>
+                  <Font size="30.0" />
+               </font></Label>
+            <Button layoutX="105.0" layoutY="179.0" mnemonicParsing="false" onAction="#onLoginButtonClick" prefHeight="100.0" prefWidth="188.0" text="Login">
+               <font>
+                  <Font size="30.0" />
+               </font></Button>
+            <Button layoutX="345.0" layoutY="179.0" mnemonicParsing="false" onAction="#onLoginButtonClick" prefHeight="100.0" prefWidth="188.0" text="Back Office">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Button>
+         </children>
+      </Pane>
+      <Pane fx:id="errorPane" prefHeight="70.0" prefWidth="1920.0" style="-fx-background-color: #b80000;">
+         <children>
+            <Label fx:id="errorLabel" alignment="TOP_LEFT" layoutX="8.0" prefHeight="70.0" prefWidth="1920.0" text="Text" textFill="WHITE">
+               <font>
+                  <Font size="23.0" />
+               </font>
+            </Label>
+         </children>
+      </Pane>
+   </children>
+</AnchorPane>
