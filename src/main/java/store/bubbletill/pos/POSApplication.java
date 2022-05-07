@@ -16,6 +16,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import store.bubbletill.pos.controllers.StartupErrorController;
+import store.bubbletill.pos.data.ApiRequestData;
 import store.bubbletill.pos.data.OperatorData;
 
 import java.io.IOException;
@@ -123,6 +124,50 @@ public class POSApplication extends Application {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static ApiRequestData getCategory(int number) {
+        try {
+            HttpClient httpClient = HttpClientBuilder.create().build();
+
+            StringEntity requestEntity = new StringEntity(
+                    "{\"category\":\"" + number + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
+                    ContentType.APPLICATION_JSON);
+
+            HttpPost postMethod = new HttpPost("http://localhost:5000/stock/category");
+            postMethod.setEntity(requestEntity);
+
+            HttpResponse rawResponse = httpClient.execute(postMethod);
+            return POSApplication.gson.fromJson(EntityUtils.toString(rawResponse.getEntity()), ApiRequestData.class);
+        } catch (Exception e) {
+            System.out.println("Category get failed: " + e.getMessage());
+            return new ApiRequestData(false, "Internal server error. Try again later.");
+        }
+    }
+
+    public static ApiRequestData getItem(int category, int code) {
+        try {
+            HttpClient httpClient = HttpClientBuilder.create().build();
+
+            StringEntity requestEntity = new StringEntity(
+                    "{\"category\":\"" + category + "\",\"code\":\"" + code + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
+                    ContentType.APPLICATION_JSON);
+
+            HttpPost postMethod = new HttpPost("http://localhost:5000/stock/item");
+            postMethod.setEntity(requestEntity);
+
+            HttpResponse rawResponse = httpClient.execute(postMethod);
+            String out = EntityUtils.toString(rawResponse.getEntity());
+            ApiRequestData data = POSApplication.gson.fromJson(out, ApiRequestData.class);
+            if (!data.isSuccess()) {
+                return data;
+            }
+
+            return new ApiRequestData(true, out);
+        } catch (Exception e) {
+            System.out.println("Item get failed: " + e.getMessage());
+            return new ApiRequestData(false, "Internal server error. Try again later.");
         }
     }
 }

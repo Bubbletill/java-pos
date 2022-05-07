@@ -67,7 +67,7 @@ public class LoginController {
 
             HttpResponse rawResponse = httpClient.execute(postMethod);
             String out = EntityUtils.toString(rawResponse.getEntity());
-            System.out.println(out);
+
             ApiRequestData data = POSApplication.gson.fromJson(out, ApiRequestData.class);
 
             if (!data.isSuccess()) {

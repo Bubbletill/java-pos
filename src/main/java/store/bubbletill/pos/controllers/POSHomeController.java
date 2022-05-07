@@ -5,10 +5,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import store.bubbletill.pos.POSApplication;
+import store.bubbletill.pos.data.ApiRequestData;
+import store.bubbletill.pos.data.StockData;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -19,6 +23,9 @@ public class POSHomeController {
 
     // Different views
     @FXML private Pane mainHome;
+    @FXML private Label categoryInputLabel;
+    @FXML private TextField categoryInputField;
+    @FXML private TextField itemcodeInputField;
 
     @FXML private Pane declareOpeningFloat;
 
@@ -94,6 +101,82 @@ public class POSHomeController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @FXML private void onCategoryInputKeyPress(KeyEvent event) {
+        if (event.getCode().toString().equals("ESCAPE")) {
+            resetItemInputFields();
+            return;
+        }
+
+        if (!event.getCode().toString().equals("ENTER"))
+            return;
+
+        showError(null);
+        if (categoryInputField.getText() == null || categoryInputField.getText().isEmpty()) {
+            showError("Please enter a category.");
+            return;
+        }
+
+        ApiRequestData data;
+        try {
+            data = POSApplication.getCategory(Integer.parseInt(categoryInputField.getText()));
+        } catch (Exception e) {
+            showError("Category should be a number.");
+            return;
+        }
+
+        if (!data.isSuccess()) {
+            showError(data.getMessage());
+            return;
+        }
+
+        categoryInputLabel.setText(data.getMessage().toUpperCase());
+        categoryInputLabel.setVisible(true);
+        categoryInputField.setDisable(true);
+        itemcodeInputField.requestFocus();
+    }
+
+    @FXML private void onItemcodeInputKeyPress(KeyEvent event) {
+        if (event.getCode().toString().equals("ESCAPE")) {
+            resetItemInputFields();
+            return;
+        }
+        if (!event.getCode().toString().equals("ENTER"))
+            return;
+
+        showError(null);
+        if (itemcodeInputField.getText() == null || itemcodeInputField.getText().isEmpty()) {
+            showError("Please enter an item code.");
+            return;
+        }
+
+        ApiRequestData data;
+        try {
+            data = POSApplication.getItem(Integer.parseInt(categoryInputField.getText()), Integer.parseInt(itemcodeInputField.getText()));
+        } catch (Exception e) {
+            showError("Item code should be a number.");
+            return;
+        }
+
+        if (!data.isSuccess()) {
+            showError(data.getMessage());
+            return;
+        }
+
+        StockData stockData = POSApplication.gson.fromJson(data.getMessage(), StockData.class);
+        System.out.println("Add the stock");
+
+        resetItemInputFields();
+
+    }
+
+    private void resetItemInputFields() {
+        categoryInputLabel.setVisible(false);
+        categoryInputField.setText("");
+        categoryInputField.setDisable(false);
+        itemcodeInputField.setText("");
+        categoryInputField.requestFocus();
     }
 
     @FXML
