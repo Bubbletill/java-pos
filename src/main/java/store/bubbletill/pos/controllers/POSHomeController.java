@@ -5,14 +5,18 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import store.bubbletill.pos.POSApplication;
 import store.bubbletill.pos.data.ApiRequestData;
 import store.bubbletill.pos.data.StockData;
+import store.bubbletill.pos.data.Transaction;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,9 +27,12 @@ public class POSHomeController {
 
     // Different views
     @FXML private Pane mainHome;
+    @FXML private Pane preTransButtons;
+    @FXML private Pane transStartedButtons;
     @FXML private Label categoryInputLabel;
     @FXML private TextField categoryInputField;
     @FXML private TextField itemcodeInputField;
+    @FXML private ListView<String> basketListView;
 
     @FXML private Pane declareOpeningFloat;
 
@@ -56,6 +63,8 @@ public class POSHomeController {
         }
 
         errorPane.setVisible(false);
+        preTransButtons.setVisible(true);
+        transStartedButtons.setVisible(false);
 
         dateTimeTimer = new Timer();
         dateTimeTimer.scheduleAtFixedRate(new TimerTask() {
@@ -71,6 +80,19 @@ public class POSHomeController {
         registerLabel.setText("" + app.register);
         transactionLabel.setText("" + app.transaction);
         operatorLabel.setText(app.operator.getOperatorId());
+
+        basketListView.setCellFactory(cell -> new ListCell<>() {
+            @Override
+            protected void updateItem(String s, boolean b) {
+                super.updateItem(s, b);
+
+                if (s != null) {
+                    setText(s);
+
+                    setFont(Font.font(20));
+                }
+            }
+        });
     }
 
     private void showError(String error) {
@@ -165,10 +187,19 @@ public class POSHomeController {
         }
 
         StockData stockData = POSApplication.gson.fromJson(data.getMessage(), StockData.class);
-        System.out.println("Add the stock");
+
+        if (app.currentTransaction == null) {
+            app.transaction++;
+            app.currentTransaction = new Transaction(app.transaction);
+            transactionLabel.setText("" + app.transaction);
+            transStartedButtons.setVisible(true);
+            preTransButtons.setVisible(false);
+        }
+
+        app.currentTransaction.addToBasket(stockData);
+        basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + POSApplication.df.format(stockData.getPrice()));
 
         resetItemInputFields();
-
     }
 
     private void resetItemInputFields() {
@@ -182,6 +213,11 @@ public class POSHomeController {
     @FXML
     private void onTenderButtonPress() {
         showError("Error: Feature not yet available.");
+    }
+
+    @FXML
+    private void onSuspendButtonPress() {
+        app.suspendTransaction();
     }
 
     // Declare Opening Float

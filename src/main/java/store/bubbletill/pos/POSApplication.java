@@ -18,14 +18,19 @@ import org.apache.http.util.EntityUtils;
 import store.bubbletill.pos.controllers.StartupErrorController;
 import store.bubbletill.pos.data.ApiRequestData;
 import store.bubbletill.pos.data.OperatorData;
+import store.bubbletill.pos.data.Transaction;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class POSApplication extends Application {
 
     public static POSApplication instance;
 
     public static Gson gson = new Gson();
+    public static final DecimalFormat df = new DecimalFormat("0.00");
 
     // General Data
     public OperatorData operator;
@@ -34,6 +39,8 @@ public class POSApplication extends Application {
     public int register;
     public int transaction = 0;
     public String accessToken;
+
+    public Transaction currentTransaction;
 
     // Cash data
     public double cashInDraw = -9999;
@@ -170,4 +177,26 @@ public class POSApplication extends Application {
             return new ApiRequestData(false, "Internal server error. Try again later.");
         }
     }
+
+    public void suspendTransaction() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yy");
+        try {
+            HttpClient httpClient = HttpClientBuilder.create().build();
+
+            String items = gson.toJson(currentTransaction).replaceAll("\"", "\\\\\"");
+            System.out.println(items);
+            System.out.println(operator.getOperatorId());
+
+            StringEntity requestEntity = new StringEntity(
+                    "{\"store\":\"" + store + "\",\"date\":\"" + dtf.format(LocalDateTime.now()) + "\", \"reg\":" + register + ", \"oper\": \"" + operator.getOperatorId() + "\", \"items\": \"" + items + "\", \"token\": \"" + accessToken + "\"}",
+                    ContentType.APPLICATION_JSON);
+
+            HttpPost postMethod = new HttpPost("http://localhost:5000/pos/suspend");
+            postMethod.setEntity(requestEntity);
+            HttpResponse rawResponse = httpClient.execute(postMethod);
+        } catch (Exception e) {
+            System.out.println("Suspend failed: " + e.getMessage());
+        }
+    }
 }
+

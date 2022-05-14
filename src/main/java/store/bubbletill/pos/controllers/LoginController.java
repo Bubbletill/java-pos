@@ -96,7 +96,6 @@ public class LoginController {
     protected void onUIDKeyPress(KeyEvent e) {
         if (e.getCode().toString().equals("ENTER")) {
             passwordForm.requestFocus();
-            System.out.println("Enter pressed");
         }
     }
 
