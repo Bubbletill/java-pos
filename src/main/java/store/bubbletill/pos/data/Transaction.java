@@ -25,6 +25,14 @@ public class Transaction {
         return id;
     }
 
+    public List<StockData> getBasket() {
+        return basket;
+    }
+
+    public void setBasket(List<StockData> basket) {
+        this.basket = basket;
+    }
+
     public void addToBasket(StockData stockData) {
         basket.add(stockData);
     }

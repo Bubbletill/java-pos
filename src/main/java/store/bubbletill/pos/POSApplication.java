@@ -31,23 +31,26 @@ public class POSApplication extends Application {
 
     public static Gson gson = new Gson();
     public static final DecimalFormat df = new DecimalFormat("0.00");
+    private Stage stage;
 
     // General Data
     public OperatorData operator;
     public boolean workingOnline = true;
     public int store;
     public int register;
-    public int transaction = 0;
+    public int transNo = 0;
     public String accessToken;
 
-    public Transaction currentTransaction;
+    public Transaction transaction;
 
     // Cash data
     public double cashInDraw = -9999;
+    public boolean floatKnown = false;
 
     @Override
     public void start(Stage stage) throws IOException {
         instance = this;
+        this.stage = stage;
 
         // Load register specific info
         try {
@@ -82,7 +85,7 @@ public class POSApplication extends Application {
             methodPost.setEntity(requestEntity);
             rawResponse = httpClient.execute(methodPost);
             out = EntityUtils.toString(rawResponse.getEntity());
-            transaction = Integer.parseInt(out);
+            transNo = Integer.parseInt(out);
             System.out.println("Loaded transaction number");
         } catch (Exception e) {
             System.out.println("Reg get failed: " + e.getMessage());
@@ -178,14 +181,29 @@ public class POSApplication extends Application {
         }
     }
 
+
+    public void reset() {
+        transaction = null;
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("poshome.fxml"));
+            Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);
+            stage.setScene(scene);
+            stage.setTitle("Bubbletill POS 22.0.1");
+            stage.setFullScreen(true);
+            stage.setFullScreenExitHint("");
+            stage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void suspendTransaction() {
+        transNo--;
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yy");
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
 
-            String items = gson.toJson(currentTransaction).replaceAll("\"", "\\\\\"");
-            System.out.println(items);
-            System.out.println(operator.getOperatorId());
+            String items = gson.toJson(transaction).replaceAll("\"", "\\\\\"");
 
             StringEntity requestEntity = new StringEntity(
                     "{\"store\":\"" + store + "\",\"date\":\"" + dtf.format(LocalDateTime.now()) + "\", \"reg\":" + register + ", \"oper\": \"" + operator.getOperatorId() + "\", \"items\": \"" + items + "\", \"token\": \"" + accessToken + "\"}",
@@ -194,6 +212,8 @@ public class POSApplication extends Application {
             HttpPost postMethod = new HttpPost("http://localhost:5000/pos/suspend");
             postMethod.setEntity(requestEntity);
             HttpResponse rawResponse = httpClient.execute(postMethod);
+
+            reset();
         } catch (Exception e) {
             System.out.println("Suspend failed: " + e.getMessage());
         }
