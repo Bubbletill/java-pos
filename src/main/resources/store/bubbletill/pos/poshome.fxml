@@ -12,7 +12,7 @@
 
 <AnchorPane prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="store.bubbletill.pos.controllers.POSHomeController">
    <children>
-      <Pane fx:id="mainHome" layoutY="70.0" prefHeight="1010.0" prefWidth="1920.0" visible="false">
+      <Pane fx:id="mainHome" layoutY="70.0" prefHeight="1010.0" prefWidth="1920.0">
          <children>
             <Label layoutX="31.0" layoutY="14.0" text="Basket">
                <font>
@@ -45,33 +45,86 @@
                   <Font size="18.0" />
                </font>
             </TextField>
-            <Pane fx:id="transStartedButtons" prefHeight="1010.0" prefWidth="1920.0" visible="false">
+            <Pane fx:id="transStartedButtons" layoutY="859.0" prefHeight="150.0" prefWidth="1920.0" visible="false">
                <children>
-                  <Button fx:id="tenderButton" layoutX="31.0" layoutY="870.0" mnemonicParsing="false" onAction="#onTenderButtonPress" prefHeight="96.0" prefWidth="168.0" text="Tender">
+                  <Button fx:id="tenderButton" layoutX="26.0" layoutY="27.0" mnemonicParsing="false" onAction="#onTenderButtonPress" prefHeight="96.0" prefWidth="168.0" text="Tender">
                      <font>
                         <Font size="24.0" />
                      </font>
                   </Button>
-                  <Button fx:id="suspendButton" layoutX="1717.0" layoutY="870.0" mnemonicParsing="false" onAction="#onSuspendButtonPress" prefHeight="96.0" prefWidth="168.0" text="Suspend">
+                  <Button layoutX="210.0" layoutY="27.0" mnemonicParsing="false" onAction="#onReturnButtonPress" prefHeight="96.0" prefWidth="168.0" text="Return">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Button>
+                  <Button layoutX="1349.0" layoutY="27.0" mnemonicParsing="false" onAction="#onItemModButtonPress" prefHeight="96.0" prefWidth="168.0" text="Item Mod" wrapText="true">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Button>
+                  <Button layoutX="1533.0" layoutY="27.0" mnemonicParsing="false" onAction="#onTransModButtonPress" prefHeight="96.0" prefWidth="168.0" text="Trans Mod" wrapText="true">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Button>
+                  <Button fx:id="suspendButton" layoutX="1717.0" layoutY="27.0" mnemonicParsing="false" onAction="#onSuspendButtonPress" prefHeight="96.0" prefWidth="168.0" text="Suspend">
                      <font>
                         <Font size="24.0" />
                      </font>
                   </Button>
                </children>
             </Pane>
-            <Pane fx:id="preTransButtons" prefHeight="1010.0" prefWidth="1920.0">
+            <Pane fx:id="preTransButtons" layoutY="860.0" prefHeight="150.0" prefWidth="1920.0" visible="false">
                <children>
-                  <Button fx:id="logoutButton" layoutX="1717.0" layoutY="870.0" mnemonicParsing="false" onAction="#onLogoutButtonPress" prefHeight="96.0" prefWidth="168.0" text="Logout">
+                  <Button fx:id="adminButton" layoutX="26.0" layoutY="27.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Admin">
                      <font>
                         <Font size="24.0" />
                      </font>
                   </Button>
-                  <Button fx:id="adminButton" layoutX="31.0" layoutY="870.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Admin">
+                  <Button fx:id="logoutButton" layoutX="1716.0" layoutY="27.0" mnemonicParsing="false" onAction="#onLogoutButtonPress" prefHeight="96.0" prefWidth="168.0" text="Logout">
                      <font>
                         <Font size="24.0" />
                      </font>
                   </Button>
-                  <Button layoutX="1717.0" layoutY="762.0" mnemonicParsing="false" onAction="#onResumeButtonPress" prefHeight="96.0" prefWidth="168.0" text="Resume">
+                  <Button layoutX="1539.0" layoutY="27.0" mnemonicParsing="false" onAction="#onResumeButtonPress" prefHeight="96.0" prefWidth="168.0" text="Resume">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Button>
+               </children>
+            </Pane>
+            <Pane fx:id="transModButtons" layoutY="859.0" prefHeight="150.0" prefWidth="1920.0" visible="false">
+               <children>
+                  <Button layoutX="26.0" layoutY="27.0" mnemonicParsing="false" onAction="#onTmVoidButtonPress" prefHeight="96.0" prefWidth="168.0" text="Void Transaction" textAlignment="CENTER" wrapText="true">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Button>
+                  <Button layoutX="210.0" layoutY="27.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Discount Transaction" textAlignment="CENTER" wrapText="true">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Button>
+                  <Button layoutX="1717.0" layoutY="27.0" mnemonicParsing="false" onAction="#onTmBackButtonPress" prefHeight="96.0" prefWidth="168.0" text="Back">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Button>
+               </children>
+            </Pane>
+            <Pane fx:id="tenderButtons" layoutY="859.0" prefHeight="150.0" prefWidth="1920.0">
+               <children>
+                  <Button layoutX="26.0" layoutY="27.0" mnemonicParsing="false" onAction="#onTenderCashButtonPress" prefHeight="96.0" prefWidth="168.0" text="Cash" textAlignment="CENTER" wrapText="true">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Button>
+                  <Button layoutX="210.0" layoutY="27.0" mnemonicParsing="false" onAction="#onTenderCardButtonPress" prefHeight="96.0" prefWidth="168.0" text="Temp" textAlignment="CENTER" wrapText="true">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Button>
+                  <Button layoutX="1717.0" layoutY="27.0" mnemonicParsing="false" onAction="#onTenderBackButtonPress" prefHeight="96.0" prefWidth="168.0" text="Back">
                      <font>
                         <Font size="24.0" />
                      </font>
@@ -285,7 +338,7 @@
             </Pane>
          </children>
       </Pane>
-      <Pane fx:id="resumeTrans" layoutY="70.0" prefHeight="1010.0" prefWidth="1920.0">
+      <Pane fx:id="resumeTrans" layoutY="70.0" prefHeight="1010.0" prefWidth="1920.0" visible="false">
          <children>
             <ListView fx:id="resumeList" editable="true" fixedCellSize="80.0" layoutX="14.0" layoutY="113.0" prefHeight="499.0" prefWidth="1210.0" />
             <Label layoutX="14.0" layoutY="30.0" prefHeight="70.0" prefWidth="1274.0" text="Select transaction to resume" wrapText="true">

@@ -1,6 +1,5 @@
 package store.bubbletill.pos.controllers;
 
-import com.google.gson.JsonArray;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -26,8 +25,6 @@ import store.bubbletill.pos.data.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -37,6 +34,8 @@ public class POSHomeController {
     @FXML private Pane mainHome;
     @FXML private Pane preTransButtons;
     @FXML private Pane transStartedButtons;
+    @FXML private Pane tenderButtons;
+    @FXML private Pane transModButtons;
     @FXML private Label categoryInputLabel;
     @FXML private TextField categoryInputField;
     @FXML private TextField itemcodeInputField;
@@ -92,6 +91,8 @@ public class POSHomeController {
         errorPane.setVisible(false);
         preTransButtons.setVisible(true);
         transStartedButtons.setVisible(false);
+        tenderButtons.setVisible(false);
+        transModButtons.setVisible(false);
         resumeTrans.setVisible(false);
 
         dateTimeTimer = new Timer();
@@ -247,7 +248,20 @@ public class POSHomeController {
 
     @FXML
     private void onTenderButtonPress() {
-        showError("Error: Feature not yet available.");
+        tenderButtons.setVisible(true);
+        transStartedButtons.setVisible(false);
+    }
+
+    @FXML
+    private void onReturnButtonPress() { }
+
+    @FXML
+    private void onItemModButtonPress() { }
+
+    @FXML
+    private void onTransModButtonPress() {
+        transModButtons.setVisible(true);
+        transStartedButtons.setVisible(false);
     }
 
     @FXML
@@ -282,7 +296,6 @@ public class POSHomeController {
         } catch (Exception e) {
             e.printStackTrace();
             showError(e.getMessage());
-            return;
         }
     }
 
@@ -315,6 +328,7 @@ public class POSHomeController {
             app.cashInDraw += Integer.parseInt(dof50p.getText()) * 0.5;
             app.cashInDraw += Integer.parseInt(dof20p.getText()) * 0.2;
             app.cashInDraw += Integer.parseInt(dof10p.getText()) * 0.1;
+            app.cashInDraw += Integer.parseInt(dof5p.getText()) * 0.05;
             app.cashInDraw += Integer.parseInt(dof2p.getText()) * 0.02;
             app.cashInDraw += Integer.parseInt(dof1p.getText()) * 0.01;
         } catch (Exception e) {
@@ -328,6 +342,43 @@ public class POSHomeController {
         mainHome.setVisible(true);
         app.floatKnown = true;
 
+    }
+
+    // Tender
+    @FXML private void onTenderCashButtonPress() {
+
+    }
+
+    @FXML private void onTenderCardButtonPress() {
+        app.transaction.addTender(PaymentType.CARD, app.transaction.getBasketTotal());
+
+        try {
+            app.checkAndSubmit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError(e.getMessage());
+        }
+    }
+
+    @FXML private void onTenderBackButtonPress() {
+        transStartedButtons.setVisible(true);
+        tenderButtons.setVisible(false);
+    }
+
+    // Trans Mod
+    @FXML private void onTmVoidButtonPress() {
+        app.transaction.setVoided(true);
+        try {
+            app.submit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError(e.getMessage());
+        }
+    }
+
+    @FXML private void onTmBackButtonPress() {
+        transStartedButtons.setVisible(true);
+        transModButtons.setVisible(false);
     }
 
     // Resume
@@ -371,10 +422,16 @@ public class POSHomeController {
     private void onRtBackButtonPress() {
         resumeTrans.setVisible(false);
         mainHome.setVisible(true);
+        showError(null);
     }
 
     @FXML
     private void onRtResumeButtonPress() {
+        showError(null);
+        if (resumeList.getSelectionModel().getSelectedItem() == null) {
+            showError("Please select a transaction to resume.");
+            return;
+        }
         resumeTransaction(Integer.parseInt(resumeList.getSelectionModel().getSelectedItem().split(" ")[0]));
     }
 

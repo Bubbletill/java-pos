@@ -218,5 +218,32 @@ public class POSApplication extends Application {
             System.out.println("Suspend failed: " + e.getMessage());
         }
     }
+
+    public void submit() throws Exception {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yy");
+        HttpClient httpClient = HttpClientBuilder.create().build();
+
+        String items = POSApplication.gson.toJson(transaction).replaceAll("\"", "\\\\\"");
+
+        StringEntity requestEntity = new StringEntity(
+                "{\"store\":\"" + store + "\",\"date\":\"" + dtf.format(LocalDateTime.now()) + "\", \"register\":" + register + ", \"oper\": \"" + operator.getOperatorId() + "\", \"trans\": \"" + transaction.getId() + "\", \"items\": \"" + items + "\", \"token\": \"" + accessToken + "\"}",
+                ContentType.APPLICATION_JSON);
+
+        HttpPost postMethod = new HttpPost("http://localhost:5000/pos/submit");
+        postMethod.setEntity(requestEntity);
+
+        HttpResponse rawResponse = httpClient.execute(postMethod);
+
+        reset();
+    }
+
+    public boolean checkAndSubmit() throws Exception {
+        if (transaction.isTenderComplete()) {
+            submit();
+            return true;
+        }
+
+        return false;
+    }
 }
 
