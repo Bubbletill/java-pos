@@ -114,17 +114,17 @@
             </Pane>
             <Pane fx:id="tenderButtons" layoutY="859.0" prefHeight="150.0" prefWidth="1920.0">
                <children>
-                  <Button layoutX="26.0" layoutY="27.0" mnemonicParsing="false" onAction="#onTenderCashButtonPress" prefHeight="96.0" prefWidth="168.0" text="Cash" textAlignment="CENTER" wrapText="true">
+                  <Button fx:id="tenderCashButton" layoutX="26.0" layoutY="27.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Cash" textAlignment="CENTER" wrapText="true">
                      <font>
                         <Font size="24.0" />
                      </font>
                   </Button>
-                  <Button layoutX="210.0" layoutY="27.0" mnemonicParsing="false" onAction="#onTenderCardButtonPress" prefHeight="96.0" prefWidth="168.0" text="Temp" textAlignment="CENTER" wrapText="true">
+                  <Button fx:id="tenderCardButton" layoutX="210.0" layoutY="27.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Card" textAlignment="CENTER" wrapText="true">
                      <font>
                         <Font size="24.0" />
                      </font>
                   </Button>
-                  <Button layoutX="1717.0" layoutY="27.0" mnemonicParsing="false" onAction="#onTenderBackButtonPress" prefHeight="96.0" prefWidth="168.0" text="Back">
+                  <Button fx:id="tenderBackButton" layoutX="1717.0" layoutY="27.0" mnemonicParsing="false" onAction="#onTenderBackButtonPress" prefHeight="96.0" prefWidth="168.0" text="Back" wrapText="true">
                      <font>
                         <Font size="24.0" />
                      </font>

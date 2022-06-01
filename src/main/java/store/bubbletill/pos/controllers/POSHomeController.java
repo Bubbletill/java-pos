@@ -4,10 +4,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
@@ -25,6 +22,7 @@ import store.bubbletill.pos.data.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -40,6 +38,10 @@ public class POSHomeController {
     @FXML private TextField categoryInputField;
     @FXML private TextField itemcodeInputField;
     @FXML private ListView<String> basketListView;
+
+    @FXML private Button tenderCashButton;
+    @FXML private Button tenderCardButton;
+    @FXML private Button tenderBackButton;
 
     @FXML private Pane resumeTrans;
     @FXML private ListView<String> resumeList;
@@ -123,6 +125,11 @@ public class POSHomeController {
             }
         });
 
+        // Setup tender buttons
+        tenderCashButton.setOnAction(e -> {onTenderTypePress(PaymentType.CASH); });
+        tenderCardButton.setOnAction(e -> {onTenderTypePress(PaymentType.CARD); });
+
+        // Resume trans?
         if (app.transaction != null) {
             for (StockData stockData : app.transaction.getBasket()) {
                 basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + POSApplication.df.format(stockData.getPrice()));
@@ -337,7 +344,7 @@ public class POSHomeController {
         }
 
         declareOpeningFloat.setVisible(false);
-        //errorPane. setVisible(false);
+        //showError(null);
         showError("Cash in draw: " + app.cashInDraw);
         mainHome.setVisible(true);
         app.floatKnown = true;
@@ -345,12 +352,32 @@ public class POSHomeController {
     }
 
     // Tender
-    @FXML private void onTenderCashButtonPress() {
-
+    private void onTenderTypePress(PaymentType type) {
+        showError(null);
+        TextInputDialog dialog = new TextInputDialog("" + POSApplication.df.format(app.transaction.getRemainingTender()));
+        dialog.setTitle(type.getLocalName() + " Tender");
+        dialog.setHeaderText("Please enter tender amount");
+        dialog.setContentText("£");
+        dialog.showAndWait().ifPresent(input -> handleTender(type, input));
     }
 
-    @FXML private void onTenderCardButtonPress() {
-        app.transaction.addTender(PaymentType.CARD, app.transaction.getBasketTotal());
+    private void handleTender(PaymentType type, String input) {
+        double amount;
+        try {
+            amount = Double.parseDouble(input);
+        } catch (Exception e) {
+            showError("Failed to tender: please enter a valid amount.");
+            return;
+        }
+
+        if (type == PaymentType.CARD && amount > app.transaction.getBasketTotal()) {
+            showError("Failed to tender: card tender cannot be greater than basket total.");
+            return;
+        }
+
+        app.transaction.addTender(type, amount);
+        basketListView.getItems().add(type.getLocalName() + " - £" + POSApplication.df.format(amount));
+        tenderBackButton.setText("Void Tender");
 
         try {
             app.checkAndSubmit();
@@ -361,8 +388,21 @@ public class POSHomeController {
     }
 
     @FXML private void onTenderBackButtonPress() {
-        transStartedButtons.setVisible(true);
-        tenderButtons.setVisible(false);
+        if (tenderBackButton.getText().equals("Back")) {
+            transStartedButtons.setVisible(true);
+            tenderButtons.setVisible(false);
+        } else if (tenderBackButton.getText().equals("Void Tender")) {
+            for (Map.Entry<PaymentType, Double> e : app.transaction.getTender().entrySet()) {
+                String toRemove = e.getKey().getLocalName() + " - £" + POSApplication.df.format(e.getValue());
+                basketListView.getItems().removeIf(item -> item.equals(toRemove));
+                basketListView.refresh();
+            }
+
+            app.transaction.voidTender();
+            tenderBackButton.setText("Back");
+            transStartedButtons.setVisible(true);
+            tenderButtons.setVisible(false);
+        }
     }
 
     // Trans Mod

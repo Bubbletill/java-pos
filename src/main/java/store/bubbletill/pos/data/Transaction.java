@@ -57,17 +57,21 @@ public class Transaction {
         tender.put(paymentType, current + amount);
     }
 
+    public HashMap<PaymentType, Double> getTender() {return tender;}
     public void voidTender() {
         tender.clear();
     }
+
     public double getTenderTotal() {
-        int total = 0;
+        double total = 0;
         for (Map.Entry<PaymentType, Double> e : tender.entrySet()) {
             total += e.getValue();
         }
 
         return total;
     }
+    public double getRemainingTender() {return getBasketTotal() - getTenderTotal();}
+
     public boolean isTenderComplete() { System.out.println("running"); return getTenderTotal() >= getBasketTotal(); }
 
     public boolean isVoided() { return voided; }
