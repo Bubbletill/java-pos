@@ -319,8 +319,13 @@ public class POSHomeController {
 
     @FXML
     private void onOpeningFloatYesButtonPress() {
-        dofPrompt.setVisible(false);
-        dofDeclare.setVisible(true);
+        showError(null);
+        if (app.managerLoginRequest()) {
+            dofPrompt.setVisible(false);
+            dofDeclare.setVisible(true);
+        } else {
+            showError("Insufficient permission.");
+        }
     }
 
     @FXML
