@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -18,7 +20,9 @@ import org.apache.http.util.EntityUtils;
 import store.bubbletill.pos.controllers.StartupErrorController;
 import store.bubbletill.pos.data.ApiRequestData;
 import store.bubbletill.pos.data.OperatorData;
+import store.bubbletill.pos.data.PaymentType;
 import store.bubbletill.pos.data.Transaction;
+import store.bubbletill.pos.exceptions.NegativeCashException;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -220,6 +224,19 @@ public class POSApplication extends Application {
     }
 
     public void submit() throws Exception {
+        double change = 0;
+
+        if (transaction.getTender().containsKey(PaymentType.CASH)) {
+            cashInDraw += transaction.getTender().get(PaymentType.CASH);
+            change = transaction.getTender().get(PaymentType.CASH) - transaction.getBasketTotal();
+        }
+
+        /*if (floatKnown) {
+            if (cashInDraw - change < 0) {
+                throw new NegativeCashException("There is not enough cash to provide the change.");
+            }
+        }*/
+
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yy");
         HttpClient httpClient = HttpClientBuilder.create().build();
 
@@ -233,6 +250,15 @@ public class POSApplication extends Application {
         postMethod.setEntity(requestEntity);
 
         HttpResponse rawResponse = httpClient.execute(postMethod);
+
+        cashInDraw -= change;
+
+        if (change != 0) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "£" + df.format(change), ButtonType.OK);
+            alert.setTitle("Change");
+            alert.setHeaderText("Please give the following change:");
+            alert.showAndWait();
+        }
 
         reset();
     }

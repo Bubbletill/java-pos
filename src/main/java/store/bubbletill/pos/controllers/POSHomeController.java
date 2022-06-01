@@ -376,13 +376,15 @@ public class POSHomeController {
         }
 
         app.transaction.addTender(type, amount);
-        basketListView.getItems().add(type.getLocalName() + " - £" + POSApplication.df.format(amount));
-        tenderBackButton.setText("Void Tender");
 
         try {
             app.checkAndSubmit();
+
+            basketListView.getItems().add(type.getLocalName() + " - £" + POSApplication.df.format(amount));
+            tenderBackButton.setText("Void Tender");
         } catch (Exception e) {
             e.printStackTrace();
+            app.transaction.getTender().remove(type);
             showError(e.getMessage());
         }
     }
