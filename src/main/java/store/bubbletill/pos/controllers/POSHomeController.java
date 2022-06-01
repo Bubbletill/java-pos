@@ -320,7 +320,7 @@ public class POSHomeController {
     @FXML
     private void onOpeningFloatYesButtonPress() {
         showError(null);
-        if (app.managerLoginRequest()) {
+        if (app.managerLoginRequest("Opening Float")) { 
             dofPrompt.setVisible(false);
             dofDeclare.setVisible(true);
         } else {
@@ -414,7 +414,7 @@ public class POSHomeController {
 
     // Trans Mod
     @FXML private void onTmVoidButtonPress() {
-        if (!app.managerLoginRequest()) {
+        if (!app.managerLoginRequest("Transaction Void")) {
             showError("Insufficient permission.");
             return;
         }

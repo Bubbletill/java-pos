@@ -3,7 +3,8 @@ package store.bubbletill.pos.data;
 public enum PaymentType {
 
     CASH("Cash", true),
-    CARD("Debit/Credit", false);
+    CARD("Debit/Credit", false),
+    VOID("Void", false);
 
     private String localName;
     private boolean requiresCashDraw;

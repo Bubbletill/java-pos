@@ -252,7 +252,18 @@ public class POSApplication extends Application {
         String items = POSApplication.gson.toJson(transaction).replaceAll("\"", "\\\\\"");
 
         StringEntity requestEntity = new StringEntity(
-                "{\"store\":\"" + store + "\",\"date\":\"" + dtf.format(LocalDateTime.now()) + "\", \"register\":" + register + ", \"oper\": \"" + operator.getOperatorId() + "\", \"trans\": \"" + transaction.getId() + "\", \"items\": \"" + items + "\", \"token\": \"" + accessToken + "\"}",
+                "{"
+                        + "\"store\": \"" + store
+                        + "\",\"date\": \"" + dtf.format(LocalDateTime.now())
+                        + "\", \"time\": \"" + transaction.getTime()
+                        + "\", \"register\": \"" + register
+                        + "\", \"oper\": \"" + operator.getOperatorId()
+                        + "\", \"trans\": \"" + transaction.getId()
+                        + "\", \"items\": \"" + items
+                        + "\", \"total\": \"" + df.format(transaction.getBasketTotal())
+                        + "\", \"primary_method\": \"" + transaction.getPrimaryTender().toString()
+                        + "\", \"token\": \"" + accessToken
+                        + "\"}",
                 ContentType.APPLICATION_JSON);
 
         HttpPost postMethod = new HttpPost("http://localhost:5000/pos/submit");
@@ -281,7 +292,7 @@ public class POSApplication extends Application {
         return false;
     }
 
-    public boolean managerLoginRequest() {
+    public boolean managerLoginRequest(String actionId) {
         if (operator.isManager())
             return true;
 
@@ -344,7 +355,12 @@ public class POSApplication extends Application {
 
         Optional<Pair<String, String>> result = dialog.showAndWait();
 
-        return result.filter(stringStringPair -> isManager(stringStringPair.getKey(), stringStringPair.getValue())).isPresent();
+        boolean isManager = result.filter(stringStringPair -> isManager(stringStringPair.getKey(), stringStringPair.getValue())).isPresent();
+
+        if (isManager && transaction != null)
+            transaction.addManagerAction(actionId, result.get().getKey());
+
+        return isManager;
     }
 
     private boolean isManager(String username, String password) {

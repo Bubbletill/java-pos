@@ -12,6 +12,8 @@ public class Transaction {
     private long time;
     private boolean voided;
 
+    private HashMap<String, String> managerActions;
+
     // Basket
     private List<StockData> basket;
     private HashMap<PaymentType, Double> tender;
@@ -21,12 +23,14 @@ public class Transaction {
         time = System.currentTimeMillis() / 1000L;
         basket = new ArrayList<>();
         tender = new HashMap<>();
+        managerActions = new HashMap<>();
         voided = false;
     }
 
     public int getId() {
         return id;
     }
+    public long getTime() {return time;}
 
     public List<StockData> getBasket() {
         return basket;
@@ -74,6 +78,20 @@ public class Transaction {
 
     public boolean isTenderComplete() { System.out.println("running"); return getTenderTotal() >= getBasketTotal(); }
 
+    public PaymentType getPrimaryTender() {
+        PaymentType highest = PaymentType.VOID;
+        double highestValue = 0;
+        for (Map.Entry<PaymentType, Double> e : tender.entrySet()) {
+            if (e.getValue() > highestValue) {
+                highest = e.getKey();
+                highestValue = e.getValue();
+            }
+        }
+
+        return highest;
+    }
+
     public boolean isVoided() { return voided; }
     public void setVoided(boolean voided) { this.voided = voided; }
+    public void addManagerAction(String actionId, String operId) { managerActions.put(actionId, operId); }
 }
