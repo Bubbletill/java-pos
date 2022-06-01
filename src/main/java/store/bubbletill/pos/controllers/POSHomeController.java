@@ -414,6 +414,11 @@ public class POSHomeController {
 
     // Trans Mod
     @FXML private void onTmVoidButtonPress() {
+        if (!app.managerLoginRequest()) {
+            showError("Insufficient permission.");
+            return;
+        }
+
         app.transaction.setVoided(true);
         try {
             app.submit();

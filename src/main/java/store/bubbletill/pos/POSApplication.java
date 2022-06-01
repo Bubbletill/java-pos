@@ -348,7 +348,6 @@ public class POSApplication extends Application {
     }
 
     private boolean isManager(String username, String password) {
-        System.out.println(username + "  " + password);
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
 
@@ -365,17 +364,12 @@ public class POSApplication extends Application {
             ApiRequestData data = POSApplication.gson.fromJson(out, ApiRequestData.class);
 
             if (!data.isSuccess()) {
-                System.out.println(data.getMessage());
                 return false;
             }
 
             OperatorData od = POSApplication.gson.fromJson(out, OperatorData.class);
 
-            System.out.println(out);
-            System.out.println(od.isManager());
-
             return od.isManager();
-
         } catch (Exception e) {
             e.printStackTrace();
             return false;
