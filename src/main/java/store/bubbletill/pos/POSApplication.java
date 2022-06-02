@@ -237,7 +237,9 @@ public class POSApplication extends Application {
 
         if (transaction.getTender().containsKey(PaymentType.CASH)) {
             cashInDraw += transaction.getTender().get(PaymentType.CASH);
-            change = transaction.getTender().get(PaymentType.CASH) - transaction.getBasketTotal();
+
+            if (transaction.getTender().get(PaymentType.CASH) > transaction.getBasketTotal())
+                change = transaction.getTender().get(PaymentType.CASH) - transaction.getBasketTotal();
         }
 
         /*if (floatKnown) {
@@ -259,6 +261,7 @@ public class POSApplication extends Application {
                         + "\", \"register\": \"" + register
                         + "\", \"oper\": \"" + operator.getOperatorId()
                         + "\", \"trans\": \"" + transaction.getId()
+                        + "\", \"type\": \"" + transaction.determineTransType().toString()
                         + "\", \"items\": \"" + items
                         + "\", \"total\": \"" + df.format(transaction.getBasketTotal())
                         + "\", \"primary_method\": \"" + transaction.getPrimaryTender().toString()

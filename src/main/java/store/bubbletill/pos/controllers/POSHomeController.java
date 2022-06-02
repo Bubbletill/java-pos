@@ -320,7 +320,7 @@ public class POSHomeController {
     @FXML
     private void onOpeningFloatYesButtonPress() {
         showError(null);
-        if (app.managerLoginRequest("Opening Float")) { 
+        if (app.managerLoginRequest("Opening Float")) {
             dofPrompt.setVisible(false);
             dofDeclare.setVisible(true);
         } else {

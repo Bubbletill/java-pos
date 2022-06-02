@@ -94,4 +94,22 @@ public class Transaction {
     public boolean isVoided() { return voided; }
     public void setVoided(boolean voided) { this.voided = voided; }
     public void addManagerAction(String actionId, String operId) { managerActions.put(actionId, operId); }
+
+    public TransactionType determineTransType() {
+        boolean hasSale = false;
+        boolean hasRefund = false;
+        for (StockData item : basket) {
+            if (item.isRefunded())
+                hasRefund = true;
+            else
+                hasSale = true;
+        }
+
+        if (!hasSale & hasRefund)
+            return TransactionType.REFUND;
+        else if (hasSale & hasRefund)
+            return TransactionType.EXCHANGE;
+        else
+            return TransactionType.SALE;
+    }
 }
