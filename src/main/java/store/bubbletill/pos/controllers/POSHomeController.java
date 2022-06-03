@@ -37,7 +37,14 @@ public class POSHomeController {
     @FXML private Label categoryInputLabel;
     @FXML private TextField categoryInputField;
     @FXML private TextField itemcodeInputField;
+    @FXML private Pane homeItemInputPane;
     @FXML private ListView<String> basketListView;
+
+    @FXML private Pane homeCostsPane;
+    @FXML private Pane homeCostsTenderPane;
+    @FXML private Label homeTenderTotalLabel;
+    @FXML private Label homeTenderTenderLabel;
+    @FXML private Label homeTenderRemainLabel;
 
     @FXML private Button tenderCashButton;
     @FXML private Button tenderCardButton;
@@ -96,6 +103,9 @@ public class POSHomeController {
         tenderButtons.setVisible(false);
         transModButtons.setVisible(false);
         resumeTrans.setVisible(false);
+
+        homeCostsPane.setVisible(true);
+        homeCostsTenderPane.setVisible(false);
 
         dateTimeTimer = new Timer();
         dateTimeTimer.scheduleAtFixedRate(new TimerTask() {
@@ -242,6 +252,7 @@ public class POSHomeController {
         basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + POSApplication.df.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
 
         resetItemInputFields();
+        homeTenderTotalLabel.setText("£" + POSApplication.df.format(app.transaction.getBasketTotal()));
     }
 
     private void resetItemInputFields() {
@@ -256,7 +267,10 @@ public class POSHomeController {
     @FXML
     private void onTenderButtonPress() {
         tenderButtons.setVisible(true);
+        homeCostsTenderPane.setVisible(true);
         transStartedButtons.setVisible(false);
+        homeItemInputPane.setVisible(false);
+        homeTenderRemainLabel.setText("£" + POSApplication.df.format(app.transaction.getBasketTotal()));
     }
 
     @FXML
@@ -383,10 +397,14 @@ public class POSHomeController {
         app.transaction.addTender(type, amount);
 
         try {
-            app.checkAndSubmit();
+            if (app.checkAndSubmit())
+                return;
+
 
             basketListView.getItems().add(type.getLocalName() + " - £" + POSApplication.df.format(amount));
             tenderBackButton.setText("Void Tender");
+            homeTenderTenderLabel.setText("£" + POSApplication.df.format(app.transaction.getTenderTotal()));
+            homeTenderRemainLabel.setText("£" + POSApplication.df.format((app.transaction.getBasketTotal() - app.transaction.getTenderTotal())));
         } catch (Exception e) {
             e.printStackTrace();
             app.transaction.getTender().remove(type);
@@ -395,21 +413,23 @@ public class POSHomeController {
     }
 
     @FXML private void onTenderBackButtonPress() {
-        if (tenderBackButton.getText().equals("Back")) {
-            transStartedButtons.setVisible(true);
-            tenderButtons.setVisible(false);
-        } else if (tenderBackButton.getText().equals("Void Tender")) {
+        if (tenderBackButton.getText().equals("Void Tender")) {
+            tenderBackButton.setText("Back");
             for (Map.Entry<PaymentType, Double> e : app.transaction.getTender().entrySet()) {
                 String toRemove = e.getKey().getLocalName() + " - £" + POSApplication.df.format(e.getValue());
                 basketListView.getItems().removeIf(item -> item.equals(toRemove));
                 basketListView.refresh();
             }
-
             app.transaction.voidTender();
-            tenderBackButton.setText("Back");
-            transStartedButtons.setVisible(true);
-            tenderButtons.setVisible(false);
+            homeTenderTenderLabel.setText("£0.00");
+            homeTenderRemainLabel.setText("£0.00");
         }
+
+        transStartedButtons.setVisible(true);
+        homeCostsTenderPane.setVisible(false);
+        tenderButtons.setVisible(false);
+        homeItemInputPane.setVisible(true);
+        categoryInputLabel.requestFocus();
     }
 
     // Trans Mod

@@ -8,43 +8,48 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="store.bubbletill.pos.controllers.POSHomeController">
    <children>
       <Pane fx:id="mainHome" layoutY="70.0" prefHeight="1010.0" prefWidth="1920.0">
          <children>
+            <Pane fx:id="homeItemInputPane" layoutX="709.0" layoutY="83.0" prefHeight="567.0" prefWidth="986.0">
+               <children>
+                  <Label fx:id="categoryInputLabel" alignment="TOP_LEFT" layoutX="249.0" layoutY="49.0" prefHeight="119.0" prefWidth="737.0" text="CATEGORY" visible="false" wrapText="true">
+                     <font>
+                        <Font name="System Bold" size="36.0" />
+                     </font>
+                  </Label>
+                  <Label layoutX="14.0" layoutY="14.0" prefHeight="35.0" prefWidth="224.0" text="Category">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Label>
+                  <TextField fx:id="categoryInputField" layoutX="14.0" layoutY="60.0" onKeyReleased="#onCategoryInputKeyPress">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </TextField>
+                  <Label layoutX="14.0" layoutY="119.0" prefHeight="35.0" prefWidth="224.0" text="Item Code">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Label>
+                  <TextField fx:id="itemcodeInputField" layoutX="14.0" layoutY="160.0" onKeyReleased="#onItemcodeInputKeyPress">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </TextField>
+               </children>
+            </Pane>
             <Label layoutX="31.0" layoutY="14.0" text="Basket">
                <font>
                   <Font size="48.0" />
                </font>
             </Label>
-            <Label fx:id="categoryInputLabel" alignment="TOP_LEFT" layoutX="726.0" layoutY="25.0" prefHeight="119.0" prefWidth="366.0" text="CATEGORY" visible="false" wrapText="true">
-               <font>
-                  <Font name="System Bold" size="36.0" />
-               </font>
-            </Label>
-            <Label layoutX="726.0" layoutY="120.0" prefHeight="35.0" prefWidth="224.0" text="Category">
-               <font>
-                  <Font size="24.0" />
-               </font>
-            </Label>
-            <TextField fx:id="categoryInputField" layoutX="726.0" layoutY="163.0" onKeyReleased="#onCategoryInputKeyPress">
-               <font>
-                  <Font size="18.0" />
-               </font>
-            </TextField>
-            <Label layoutX="726.0" layoutY="216.0" prefHeight="35.0" prefWidth="224.0" text="Item Code">
-               <font>
-                  <Font size="24.0" />
-               </font>
-            </Label>
             <ListView fx:id="basketListView" editable="true" fixedCellSize="70.0" layoutX="31.0" layoutY="82.0" prefHeight="760.0" prefWidth="664.0" />
-            <TextField fx:id="itemcodeInputField" layoutX="726.0" layoutY="259.0" onKeyReleased="#onItemcodeInputKeyPress">
-               <font>
-                  <Font size="18.0" />
-               </font>
-            </TextField>
             <Pane fx:id="transStartedButtons" layoutY="859.0" prefHeight="150.0" prefWidth="1920.0" visible="false">
                <children>
                   <Button fx:id="tenderButton" layoutX="26.0" layoutY="27.0" mnemonicParsing="false" onAction="#onTenderButtonPress" prefHeight="96.0" prefWidth="168.0" text="Tender">
@@ -129,6 +134,47 @@
                         <Font size="24.0" />
                      </font>
                   </Button>
+               </children>
+            </Pane>
+            <Pane fx:id="homeCostsPane" layoutX="709.0" layoutY="665.0" prefHeight="177.0" prefWidth="236.0">
+               <children>
+                  <Label alignment="CENTER" layoutX="24.0" layoutY="14.0" prefHeight="35.0" prefWidth="194.0" text="Total" textAlignment="CENTER" wrapText="true">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Label>
+                  <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="96.0" layoutX="24.0" layoutY="49.0" stroke="BLACK" strokeType="INSIDE" width="194.0" />
+                  <Label fx:id="homeTenderTotalLabel" alignment="CENTER" layoutX="26.0" layoutY="48.0" prefHeight="96.0" prefWidth="194.0" text="£0.00" textAlignment="CENTER">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Label>
+               </children>
+            </Pane>
+            <Pane fx:id="homeCostsTenderPane" layoutX="942.0" layoutY="664.0" prefHeight="177.0" prefWidth="592.0">
+               <children>
+                  <Label alignment="CENTER" layoutX="14.0" layoutY="14.0" prefHeight="35.0" prefWidth="194.0" text="Tendered" textAlignment="CENTER" wrapText="true">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Label>
+                  <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="96.0" layoutX="14.0" layoutY="49.0" stroke="BLACK" strokeType="INSIDE" width="194.0" />
+                  <Label fx:id="homeTenderTenderLabel" alignment="CENTER" layoutX="14.0" layoutY="49.0" prefHeight="96.0" prefWidth="194.0" text="£0.00" textAlignment="CENTER">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Label>
+                  <Label alignment="CENTER" layoutX="242.0" layoutY="14.0" prefHeight="35.0" prefWidth="194.0" text="Remaining" textAlignment="CENTER" wrapText="true">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Label>
+                  <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="96.0" layoutX="242.0" layoutY="49.0" stroke="BLACK" strokeType="INSIDE" width="194.0" />
+                  <Label fx:id="homeTenderRemainLabel" alignment="CENTER" layoutX="242.0" layoutY="49.0" prefHeight="96.0" prefWidth="194.0" text="£0.00" textAlignment="CENTER">
+                     <font>
+                        <Font size="24.0" />
+                     </font>
+                  </Label>
                </children>
             </Pane>
          </children>
