@@ -35,6 +35,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.Timer;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -45,6 +46,7 @@ public class POSApplication extends Application {
     public static Gson gson = new Gson();
     public static final DecimalFormat df = new DecimalFormat("0.00");
     private Stage stage;
+    public Timer dateTimeTimer;
 
     // General Data
     public OperatorData operator;
@@ -114,6 +116,13 @@ public class POSApplication extends Application {
         stage.setFullScreenExitHint("");
         stage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
         stage.show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        if (dateTimeTimer != null)
+            dateTimeTimer.cancel();
+        System.out.println("POS shutting down");
     }
 
     public static POSApplication getInstance() { return instance;}

@@ -40,7 +40,7 @@
                <font>
                   <Font size="30.0" />
                </font></Button>
-            <Button layoutX="345.0" layoutY="179.0" mnemonicParsing="false" onAction="#onLoginButtonClick" prefHeight="100.0" prefWidth="188.0" text="Back Office">
+            <Button layoutX="345.0" layoutY="179.0" mnemonicParsing="false" onAction="#onBackOfficeButtonPress" prefHeight="100.0" prefWidth="188.0" text="Back Office">
                <font>
                   <Font size="24.0" />
                </font>

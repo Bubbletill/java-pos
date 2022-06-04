@@ -78,7 +78,6 @@ public class POSHomeController {
     @FXML private Label errorLabel;
 
     private POSApplication app;
-    private Timer dateTimeTimer;
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm");
 
     @FXML
@@ -107,8 +106,11 @@ public class POSHomeController {
         homeCostsPane.setVisible(true);
         homeCostsTenderPane.setVisible(false);
 
-        dateTimeTimer = new Timer();
-        dateTimeTimer.scheduleAtFixedRate(new TimerTask() {
+        if (app.dateTimeTimer != null)
+            app.dateTimeTimer.cancel();
+
+        app.dateTimeTimer = new Timer();
+        app.dateTimeTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 Platform.runLater(() -> {
@@ -163,7 +165,7 @@ public class POSHomeController {
     @FXML
     private void onLogoutButtonPress() {
         try {
-            dateTimeTimer.cancel();
+            app.dateTimeTimer.cancel();
             FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("login.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);
             Stage stage = (Stage) dateTimeLabel.getScene().getWindow();

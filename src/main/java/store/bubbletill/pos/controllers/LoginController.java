@@ -12,6 +12,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -103,6 +104,17 @@ public class LoginController {
     protected void onPasswordKeyPress(KeyEvent e) {
         if (e.getCode().toString().equals("ENTER")) {
             onLoginButtonClick();
+        }
+    }
+
+    @FXML
+    private void onBackOfficeButtonPress() {
+        try {
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            HttpGet method = new HttpGet("http://localhost:5001/launch/backoffice");
+            httpClient.execute(method);
+        } catch (Exception e) {
+            System.out.println("BO failed: " + e.getMessage());
         }
     }
 }
