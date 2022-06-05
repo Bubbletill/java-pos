@@ -311,7 +311,7 @@ public class POSApplication extends Application {
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Authentication");
-        dialog.setHeaderText("Manager permission is required. Please sign-in.");
+        dialog.setHeaderText("Manager permission is required.\nPlease sign-in to authenticate " + actionId + ".");
 
 
         // Set the button types.

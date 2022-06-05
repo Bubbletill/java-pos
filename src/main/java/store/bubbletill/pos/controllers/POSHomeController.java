@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
@@ -51,7 +52,7 @@ public class POSHomeController {
     @FXML private Button tenderBackButton;
 
     @FXML private Pane resumeTrans;
-    @FXML private ListView<String> resumeList;
+    @FXML private TableView<SuspendedListData> resumeTable;
 
     @FXML private Pane declareOpeningFloat;
     @FXML private Pane dofPrompt;
@@ -147,6 +148,11 @@ public class POSHomeController {
                 basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + POSApplication.df.format(stockData.getPrice()));
             }
         }
+
+        resumeTable.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("usid"));
+        resumeTable.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("date"));
+        resumeTable.getColumns().get(2).setCellValueFactory(new PropertyValueFactory<>("reg"));
+        resumeTable.getColumns().get(3).setCellValueFactory(new PropertyValueFactory<>("oper"));
     }
 
     private void showError(String error) {
@@ -296,7 +302,7 @@ public class POSHomeController {
     private void onResumeButtonPress() {
         mainHome.setVisible(false);
         resumeTrans.setVisible(true);
-        resumeList.getItems().clear();
+        resumeTable.getItems().clear();
 
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -314,7 +320,7 @@ public class POSHomeController {
             SuspendedListData[] listData = POSApplication.gson.fromJson(out, SuspendedListData[].class);
 
             for (SuspendedListData sld : listData) {
-                resumeList.getItems().add(sld.getUsid() + " - " + sld.getDate().toString() + " - " + sld.getReg() + " - " + sld.getOper());
+                resumeTable.getItems().add(sld);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -502,11 +508,11 @@ public class POSHomeController {
     @FXML
     private void onRtResumeButtonPress() {
         showError(null);
-        if (resumeList.getSelectionModel().getSelectedItem() == null) {
+        if (resumeTable.getSelectionModel().getSelectedItem() == null) {
             showError("Please select a transaction to resume.");
             return;
         }
-        resumeTransaction(Integer.parseInt(resumeList.getSelectionModel().getSelectedItem().split(" ")[0]));
+        resumeTransaction(resumeTable.getSelectionModel().getSelectedItem().getUsid());
     }
 
 }
