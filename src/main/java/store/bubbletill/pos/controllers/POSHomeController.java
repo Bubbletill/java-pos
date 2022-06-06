@@ -138,6 +138,8 @@ public class POSHomeController {
             }
         });
 
+
+
         // Setup tender buttons
         tenderCashButton.setOnAction(e -> {onTenderTypePress(PaymentType.CASH); });
         tenderCardButton.setOnAction(e -> {onTenderTypePress(PaymentType.CARD); });
@@ -147,12 +149,13 @@ public class POSHomeController {
             for (StockData stockData : app.transaction.getBasket()) {
                 basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + POSApplication.df.format(stockData.getPrice()));
             }
+            homeTenderTotalLabel.setText("£" + POSApplication.df.format(app.transaction.getBasketTotal()));
         }
 
-        resumeTable.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("usid"));
-        resumeTable.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("date"));
-        resumeTable.getColumns().get(2).setCellValueFactory(new PropertyValueFactory<>("reg"));
-        resumeTable.getColumns().get(3).setCellValueFactory(new PropertyValueFactory<>("oper"));
+        resumeTable.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("date"));
+        resumeTable.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("reg"));
+        resumeTable.getColumns().get(2).setCellValueFactory(new PropertyValueFactory<>("oper"));
+        resumeTable.getColumns().get(3).setCellValueFactory(new PropertyValueFactory<>("stringTotal"));
     }
 
     private void showError(String error) {
@@ -492,6 +495,7 @@ public class POSHomeController {
         transactionLabel.setText("" + app.transNo);
         transStartedButtons.setVisible(true);
         preTransButtons.setVisible(false);
+        homeTenderTotalLabel.setText("£" + POSApplication.df.format(app.transaction.getBasketTotal()));
 
         for (StockData stockData : resumeData.getBasket()) {
             basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + POSApplication.df.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());

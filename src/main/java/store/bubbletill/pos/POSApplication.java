@@ -228,7 +228,15 @@ public class POSApplication extends Application {
             String items = gson.toJson(transaction).replaceAll("\"", "\\\\\"");
 
             StringEntity requestEntity = new StringEntity(
-                    "{\"store\":\"" + store + "\",\"date\":\"" + dtf.format(LocalDateTime.now()) + "\", \"reg\":" + register + ", \"oper\": \"" + operator.getOperatorId() + "\", \"items\": \"" + items + "\", \"token\": \"" + accessToken + "\"}",
+                    "{"
+                            + "\"store\": \"" + store
+                            + "\", \"date\": \"" + dtf.format(LocalDateTime.now())
+                            + "\", \"reg\": \"" + register
+                            + "\", \"oper\": \"" + operator.getOperatorId()
+                            + "\", \"items\": \"" + items
+                            + "\", \"total\": \"" + transaction.getBasketTotal()
+                            + "\", \"token\": \"" + accessToken
+                            + "\"}",
                     ContentType.APPLICATION_JSON);
 
             HttpPost postMethod = new HttpPost("http://localhost:5000/pos/suspend");
