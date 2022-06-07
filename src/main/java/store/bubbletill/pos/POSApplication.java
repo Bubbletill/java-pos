@@ -266,7 +266,9 @@ public class POSApplication extends Application {
         }*/
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yy");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         HttpClient httpClient = HttpClientBuilder.create().build();
+        System.out.println(timeFormatter.format(LocalDateTime.now()));
 
         String items = POSApplication.gson.toJson(transaction).replaceAll("\"", "\\\\\"");
 
@@ -274,7 +276,7 @@ public class POSApplication extends Application {
                 "{"
                         + "\"store\": \"" + store
                         + "\",\"date\": \"" + dtf.format(LocalDateTime.now())
-                        + "\", \"time\": \"" + transaction.getTime()
+                        + "\", \"time\": \"" + timeFormatter.format(LocalDateTime.now())
                         + "\", \"register\": \"" + register
                         + "\", \"oper\": \"" + operator.getOperatorId()
                         + "\", \"trans\": \"" + transaction.getId()
