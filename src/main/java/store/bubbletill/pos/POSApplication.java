@@ -295,6 +295,25 @@ public class POSApplication extends Application {
 
         cashInDraw -= change;
 
+        DateTimeFormatter receiptDT = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm");
+        requestEntity = new StringEntity(
+                "{"
+                        + "\"store\": \"" + store
+                        + "\", \"reg\": \"" + register
+                        + "\", \"trans\": \"" + transNo
+                        + "\", \"oper\": \"" + operator.getOperatorId()
+                        + "\", \"datetime\": \"" + receiptDT.format(LocalDateTime.now())
+                        + "\", \"items\": \"" + items
+                        + "\", \"paydata\": \"" + "NA"
+                        + "\", \"copy\": false"
+                        + "}",
+                ContentType.APPLICATION_JSON);
+
+        postMethod = new HttpPost("http://localhost:5001/print/receipt");
+        postMethod.setEntity(requestEntity);
+
+        rawResponse = httpClient.execute(postMethod);
+
         if (change != 0) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "£" + df.format(change), ButtonType.OK);
             alert.setTitle("Change");
