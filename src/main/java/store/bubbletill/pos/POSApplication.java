@@ -290,17 +290,19 @@ public class POSApplication extends Application {
             alert.showAndWait();
         }
 
-        Alert receiptQuestion = new Alert(Alert.AlertType.CONFIRMATION);
-        receiptQuestion.setTitle("Receipt");
-        receiptQuestion.setHeaderText("Would the customer like a receipt?");
-        receiptQuestion.setContentText("Please select an option.");
-        ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
-        receiptQuestion.getButtonTypes().setAll(yesButton, new ButtonType("No", ButtonBar.ButtonData.NO));
-        receiptQuestion.showAndWait().ifPresent(buttonType -> {
-            if (buttonType == yesButton) {
-                printReceipt(store, register, transNo, operator.getOperatorId(), Formatters.dateTimeFormatter.format(LocalDateTime.now()), POSApplication.gson.toJson(transaction), "NA", false);
-            }
-        });
+        if (transaction.determineTransType() != TransactionType.VOID) {
+            Alert receiptQuestion = new Alert(Alert.AlertType.CONFIRMATION);
+            receiptQuestion.setTitle("Receipt");
+            receiptQuestion.setHeaderText("Would the customer like a receipt?");
+            receiptQuestion.setContentText("Please select an option.");
+            ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+            receiptQuestion.getButtonTypes().setAll(yesButton, new ButtonType("No", ButtonBar.ButtonData.NO));
+            receiptQuestion.showAndWait().ifPresent(buttonType -> {
+                if (buttonType == yesButton) {
+                    printReceipt(store, register, transNo, operator.getOperatorId(), Formatters.dateTimeFormatter.format(LocalDateTime.now()), POSApplication.gson.toJson(transaction), "NA", false);
+                }
+            });
+        }
 
         reset();
     }
