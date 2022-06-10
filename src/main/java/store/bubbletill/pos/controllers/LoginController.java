@@ -19,8 +19,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import store.bubbletill.pos.POSApplication;
-import store.bubbletill.pos.data.ApiRequestData;
-import store.bubbletill.pos.data.OperatorData;
+import store.bubbletill.commons.ApiRequestData;
+import store.bubbletill.commons.OperatorData;
 
 public class LoginController {
 

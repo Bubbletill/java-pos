@@ -19,7 +19,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import store.bubbletill.pos.POSApplication;
-import store.bubbletill.pos.data.*;
+import store.bubbletill.commons.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -79,7 +79,6 @@ public class POSHomeController {
     @FXML private Label errorLabel;
 
     private POSApplication app;
-    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm");
 
     @FXML
     private void initialize() {
@@ -115,7 +114,7 @@ public class POSHomeController {
             @Override
             public void run() {
                 Platform.runLater(() -> {
-                    dateTimeLabel.setText(dtf.format(LocalDateTime.now()));
+                    dateTimeLabel.setText(Formatters.dateTimeFormatter.format(LocalDateTime.now()));
                 });
             }
         }, 0, 5000);
@@ -147,9 +146,9 @@ public class POSHomeController {
         // Resume trans?
         if (app.transaction != null) {
             for (StockData stockData : app.transaction.getBasket()) {
-                basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + POSApplication.df.format(stockData.getPrice()));
+                basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()));
             }
-            homeTenderTotalLabel.setText("£" + POSApplication.df.format(app.transaction.getBasketTotal()));
+            homeTenderTotalLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
         }
 
         resumeTable.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("date"));
@@ -260,10 +259,10 @@ public class POSHomeController {
         }
 
         app.transaction.addToBasket(stockData);
-        basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + POSApplication.df.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
+        basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
 
         resetItemInputFields();
-        homeTenderTotalLabel.setText("£" + POSApplication.df.format(app.transaction.getBasketTotal()));
+        homeTenderTotalLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
     }
 
     private void resetItemInputFields() {
@@ -281,7 +280,7 @@ public class POSHomeController {
         homeCostsTenderPane.setVisible(true);
         transStartedButtons.setVisible(false);
         homeItemInputPane.setVisible(false);
-        homeTenderRemainLabel.setText("£" + POSApplication.df.format(app.transaction.getBasketTotal()));
+        homeTenderRemainLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
     }
 
     @FXML
@@ -384,7 +383,7 @@ public class POSHomeController {
     // Tender
     private void onTenderTypePress(PaymentType type) {
         showError(null);
-        TextInputDialog dialog = new TextInputDialog("" + POSApplication.df.format(app.transaction.getRemainingTender()));
+        TextInputDialog dialog = new TextInputDialog("" + Formatters.decimalFormatter.format(app.transaction.getRemainingTender()));
         dialog.setTitle(type.getLocalName() + " Tender");
         dialog.setHeaderText("Please enter tender amount");
         dialog.setContentText("£");
@@ -412,10 +411,10 @@ public class POSHomeController {
                 return;
 
 
-            basketListView.getItems().add(type.getLocalName() + " - £" + POSApplication.df.format(amount));
+            basketListView.getItems().add(type.getLocalName() + " - £" + Formatters.decimalFormatter.format(amount));
             tenderBackButton.setText("Void Tender");
-            homeTenderTenderLabel.setText("£" + POSApplication.df.format(app.transaction.getTenderTotal()));
-            homeTenderRemainLabel.setText("£" + POSApplication.df.format((app.transaction.getBasketTotal() - app.transaction.getTenderTotal())));
+            homeTenderTenderLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getTenderTotal()));
+            homeTenderRemainLabel.setText("£" + Formatters.decimalFormatter.format((app.transaction.getBasketTotal() - app.transaction.getTenderTotal())));
         } catch (Exception e) {
             e.printStackTrace();
             app.transaction.getTender().remove(type);
@@ -427,7 +426,7 @@ public class POSHomeController {
         if (tenderBackButton.getText().equals("Void Tender")) {
             tenderBackButton.setText("Back");
             for (Map.Entry<PaymentType, Double> e : app.transaction.getTender().entrySet()) {
-                String toRemove = e.getKey().getLocalName() + " - £" + POSApplication.df.format(e.getValue());
+                String toRemove = e.getKey().getLocalName() + " - £" + Formatters.decimalFormatter.format(e.getValue());
                 basketListView.getItems().removeIf(item -> item.equals(toRemove));
                 basketListView.refresh();
             }
@@ -495,10 +494,10 @@ public class POSHomeController {
         transactionLabel.setText("" + app.transNo);
         transStartedButtons.setVisible(true);
         preTransButtons.setVisible(false);
-        homeTenderTotalLabel.setText("£" + POSApplication.df.format(app.transaction.getBasketTotal()));
+        homeTenderTotalLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
 
         for (StockData stockData : resumeData.getBasket()) {
-            basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + POSApplication.df.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
+            basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
         }
     }
 

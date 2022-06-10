@@ -10,11 +10,10 @@ module store.bubbletill.pos {
     requires com.google.gson;
     requires org.apache.httpcomponents.httpclient;
     requires org.apache.httpcomponents.httpcore;
+    requires commons;
 
     opens store.bubbletill.pos to javafx.fxml;
-    opens store.bubbletill.pos.data to com.google.gson;
     opens store.bubbletill.pos.controllers to javafx.fxml;
     exports store.bubbletill.pos;
     exports store.bubbletill.pos.controllers;
-    exports store.bubbletill.pos.data;
 }

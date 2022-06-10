@@ -24,27 +24,19 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import store.bubbletill.commons.*;
 import store.bubbletill.pos.controllers.StartupErrorController;
-import store.bubbletill.pos.data.ApiRequestData;
-import store.bubbletill.pos.data.OperatorData;
-import store.bubbletill.pos.data.PaymentType;
-import store.bubbletill.pos.data.Transaction;
 
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.Timer;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 public class POSApplication extends Application {
 
     public static POSApplication instance;
 
     public static Gson gson = new Gson();
-    public static final DecimalFormat df = new DecimalFormat("0.00");
     private Stage stage;
     public Timer dateTimeTimer;
 
@@ -221,7 +213,6 @@ public class POSApplication extends Application {
 
     public void suspendTransaction() {
         transNo--;
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yy");
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
 
@@ -230,7 +221,7 @@ public class POSApplication extends Application {
             StringEntity requestEntity = new StringEntity(
                     "{"
                             + "\"store\": \"" + store
-                            + "\", \"date\": \"" + dtf.format(LocalDateTime.now())
+                            + "\", \"date\": \"" + Formatters.dateFormatter.format(LocalDateTime.now())
                             + "\", \"reg\": \"" + register
                             + "\", \"oper\": \"" + operator.getOperatorId()
                             + "\", \"items\": \"" + items
@@ -265,24 +256,21 @@ public class POSApplication extends Application {
             }
         }*/
 
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yy");
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         HttpClient httpClient = HttpClientBuilder.create().build();
-        System.out.println(timeFormatter.format(LocalDateTime.now()));
 
         String items = POSApplication.gson.toJson(transaction).replaceAll("\"", "\\\\\"");
 
         StringEntity requestEntity = new StringEntity(
                 "{"
                         + "\"store\": \"" + store
-                        + "\",\"date\": \"" + dtf.format(LocalDateTime.now())
-                        + "\", \"time\": \"" + timeFormatter.format(LocalDateTime.now())
+                        + "\",\"date\": \"" + Formatters.dateFormatter.format(LocalDateTime.now())
+                        + "\", \"time\": \"" + Formatters.timeFormatter.format(LocalDateTime.now())
                         + "\", \"register\": \"" + register
                         + "\", \"oper\": \"" + operator.getOperatorId()
                         + "\", \"trans\": \"" + transaction.getId()
                         + "\", \"type\": \"" + transaction.determineTransType().toString()
                         + "\", \"items\": \"" + items
-                        + "\", \"total\": \"" + df.format(transaction.getBasketTotal())
+                        + "\", \"total\": \"" + Formatters.decimalFormatter.format(transaction.getBasketTotal())
                         + "\", \"primary_method\": \"" + transaction.getPrimaryTender().toString()
                         + "\", \"token\": \"" + accessToken
                         + "\"}",
@@ -296,7 +284,7 @@ public class POSApplication extends Application {
         cashInDraw -= change;
 
         if (change != 0) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "£" + df.format(change), ButtonType.OK);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "£" + Formatters.decimalFormatter.format(change), ButtonType.OK);
             alert.setTitle("Change");
             alert.setHeaderText("Please give the following change:");
             alert.showAndWait();
@@ -304,13 +292,13 @@ public class POSApplication extends Application {
 
         Alert receiptQuestion = new Alert(Alert.AlertType.CONFIRMATION);
         receiptQuestion.setTitle("Receipt");
-        receiptQuestion.setContentText("Would the customer like a receipt?");
+        receiptQuestion.setHeaderText("Would the customer like a receipt?");
+        receiptQuestion.setContentText("Please select an option.");
         ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
         receiptQuestion.getButtonTypes().setAll(yesButton, new ButtonType("No", ButtonBar.ButtonData.NO));
         receiptQuestion.showAndWait().ifPresent(buttonType -> {
             if (buttonType == yesButton) {
-                DateTimeFormatter receiptFormat = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm");
-                printReceipt(store, register, transNo, operator.getOperatorId(), receiptFormat.format(LocalDateTime.now()), POSApplication.gson.toJson(transaction), "NA", false);
+                printReceipt(store, register, transNo, operator.getOperatorId(), Formatters.dateTimeFormatter.format(LocalDateTime.now()), POSApplication.gson.toJson(transaction), "NA", false);
             }
         });
 
