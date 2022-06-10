@@ -295,31 +295,24 @@ public class POSApplication extends Application {
 
         cashInDraw -= change;
 
-        DateTimeFormatter receiptDT = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm");
-        requestEntity = new StringEntity(
-                "{"
-                        + "\"store\": \"" + store
-                        + "\", \"reg\": \"" + register
-                        + "\", \"trans\": \"" + transNo
-                        + "\", \"oper\": \"" + operator.getOperatorId()
-                        + "\", \"datetime\": \"" + receiptDT.format(LocalDateTime.now())
-                        + "\", \"items\": \"" + items
-                        + "\", \"paydata\": \"" + "NA"
-                        + "\", \"copy\": false"
-                        + "}",
-                ContentType.APPLICATION_JSON);
-
-        postMethod = new HttpPost("http://localhost:5001/print/receipt");
-        postMethod.setEntity(requestEntity);
-
-        rawResponse = httpClient.execute(postMethod);
-
         if (change != 0) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "£" + df.format(change), ButtonType.OK);
             alert.setTitle("Change");
             alert.setHeaderText("Please give the following change:");
             alert.showAndWait();
         }
+
+        Alert receiptQuestion = new Alert(Alert.AlertType.CONFIRMATION);
+        receiptQuestion.setTitle("Receipt");
+        receiptQuestion.setContentText("Would the customer like a receipt?");
+        ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+        receiptQuestion.getButtonTypes().setAll(yesButton, new ButtonType("No", ButtonBar.ButtonData.NO));
+        receiptQuestion.showAndWait().ifPresent(buttonType -> {
+            if (buttonType == yesButton) {
+                DateTimeFormatter receiptFormat = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm");
+                printReceipt(store, register, transNo, operator.getOperatorId(), receiptFormat.format(LocalDateTime.now()), POSApplication.gson.toJson(transaction), "NA", false);
+            }
+        });
 
         reset();
     }
@@ -331,6 +324,32 @@ public class POSApplication extends Application {
         }
 
         return false;
+    }
+
+    public void printReceipt(int store, int register, int transNo, String operator, String formattedDate, String unformattedItems, String paydata, boolean copy) {
+        try {
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            String items = unformattedItems.replaceAll("\"", "\\\\\"");
+            StringEntity requestEntity = new StringEntity(
+                    "{"
+                            + "\"store\": \"" + store
+                            + "\", \"reg\": \"" + register
+                            + "\", \"trans\": \"" + transNo
+                            + "\", \"oper\": \"" + operator
+                            + "\", \"datetime\": \"" + formattedDate
+                            + "\", \"items\": \"" + items
+                            + "\", \"paydata\": \"" + paydata
+                            + "\", \"copy\": " + copy
+                            + "}",
+                    ContentType.APPLICATION_JSON);
+
+            HttpPost postMethod = new HttpPost("http://localhost:5001/print/receipt");
+            postMethod.setEntity(requestEntity);
+
+            HttpResponse rawResponse = httpClient.execute(postMethod);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean managerLoginRequest(String actionId) {
