@@ -22,6 +22,7 @@ import store.bubbletill.pos.POSApplication;
 import store.bubbletill.commons.*;
 import store.bubbletill.pos.views.HomeTenderView;
 import store.bubbletill.pos.views.OpeningFloatView;
+import store.bubbletill.pos.views.ResumeView;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -30,7 +31,7 @@ import java.util.TimerTask;
 
 public class POSHomeController {
 
-    // Different views
+    // Home Tender View
     @FXML private Pane mainHome;
     @FXML private Pane preTransButtons;
     @FXML private Pane transStartedButtons;
@@ -48,13 +49,26 @@ public class POSHomeController {
     @FXML private Label homeTenderTenderLabel;
     @FXML private Label homeTenderRemainLabel;
 
+    @FXML private Button tenderButton;
     @FXML private Button tenderCashButton;
     @FXML private Button tenderCardButton;
     @FXML private Button tenderBackButton;
+    @FXML private Button itemModButton;
+    @FXML private Button transModButton;
+    @FXML private Button suspendButton;
+    @FXML private Button transModVoidButton;
+    @FXML private Button transModBackButton;
+    @FXML private Button logoutButton;
 
+    // Resume View
     @FXML private Pane resumeTrans;
     @FXML private TableView<SuspendedListData> resumeTable;
 
+    @FXML private Button homeResumeButton;
+    @FXML private Button rtResumeButton;
+    @FXML private Button rtBackButton;
+
+    // Opening float view
     @FXML private Pane declareOpeningFloat;
     @FXML private Pane dofPrompt;
     @FXML private Pane dofDeclare;
@@ -70,6 +84,10 @@ public class POSHomeController {
     @FXML private TextField dof2p;
     @FXML private TextField dof1p;
 
+    @FXML private Button openingFloatYesButton;
+    @FXML private Button openingFloatNoButton;
+    @FXML private Button openingFloatSubmitButton;
+
     // Top status bar
     @FXML private Label dateTimeLabel;
     @FXML private Label statusLabel;
@@ -80,8 +98,9 @@ public class POSHomeController {
     @FXML private Label errorLabel;
 
     // Views
-    private HomeTenderView homeTenderView;
-    private OpeningFloatView openingFloatView;
+    public HomeTenderView homeTenderView;
+    public OpeningFloatView openingFloatView;
+    public ResumeView resumeView;
 
     private POSApplication app;
 
@@ -89,29 +108,32 @@ public class POSHomeController {
     private void initialize() {
         app = POSApplication.getInstance();
 
-        // Setup the views!
-        homeTenderView = new HomeTenderView(app, this, (Stage) dateTimeLabel.getScene().getWindow(),
-                transactionLabel, mainHome, preTransButtons, transStartedButtons, tenderButtons, transModButtons,
-                categoryInputLabel, categoryInputField, itemcodeInputField, homeItemInputPane, basketListView,
-                homeCostsPane, homeCostsTenderPane, homeTenderTotalLabel, homeTenderTenderLabel, homeTenderRemainLabel,
-                tenderCashButton, tenderCardButton, tenderBackButton);
+        // Set up the views!
+        homeTenderView = new HomeTenderView(app, this, transactionLabel, mainHome, preTransButtons,
+                transStartedButtons, tenderButtons, transModButtons, categoryInputLabel, categoryInputField,
+                itemcodeInputField, homeItemInputPane, basketListView, homeCostsPane, homeCostsTenderPane,
+                homeTenderTotalLabel, homeTenderTenderLabel, homeTenderRemainLabel, tenderCashButton, tenderCardButton,
+                tenderBackButton, tenderButton, itemModButton, transModButton, suspendButton, transModVoidButton,
+                transModBackButton, logoutButton, homeResumeButton);
 
-        openingFloatView = new OpeningFloatView()
+        openingFloatView = new OpeningFloatView(app, this, declareOpeningFloat, dofPrompt, dofDeclare, dof50,
+                dof20, dof10, dof5, dof1, dof50p, dof20p, dof10p, dof5p, dof2p, dof1p, openingFloatYesButton,
+                openingFloatNoButton, openingFloatSubmitButton);
 
-        dofPrompt.setVisible(true);
-        dofDeclare.setVisible(false);
+        resumeView = new ResumeView(app, this, resumeTrans, resumeTable, rtResumeButton, rtBackButton);
 
         if (app.cashInDraw == -9999) {
-            declareOpeningFloat.setVisible(true);
-            mainHome.setVisible(false);
+            homeTenderView.hide();
+            openingFloatView.show();
             POSApplication.buzzer("double");
         } else {
-            declareOpeningFloat.setVisible(false);
-            mainHome.setVisible(true);
+            homeTenderView.show();
+            openingFloatView.hide();
         }
 
+        resumeView.hide();
+
         errorPane.setVisible(false);
-        resumeTrans.setVisible(false);
 
 
         if (app.dateTimeTimer != null)
@@ -140,11 +162,10 @@ public class POSHomeController {
             }
             homeTenderTotalLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
         }
+    }
 
-        resumeTable.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("date"));
-        resumeTable.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("reg"));
-        resumeTable.getColumns().get(2).setCellValueFactory(new PropertyValueFactory<>("oper"));
-        resumeTable.getColumns().get(3).setCellValueFactory(new PropertyValueFactory<>("stringTotal"));
+    public Stage getStage() {
+        return (Stage) dateTimeLabel.getScene().getWindow();
     }
 
     public void showError(String error) {
@@ -158,40 +179,7 @@ public class POSHomeController {
         POSApplication.buzzer("double");
     }
 
-
-    @FXML
-    private void onResumeButtonPress() {
-        mainHome.setVisible(false);
-        resumeTrans.setVisible(true);
-        resumeTable.getItems().clear();
-
-        try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
-
-            StringEntity requestEntity = new StringEntity(
-                    "{\"store\":\"" + app.store + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
-                    ContentType.APPLICATION_JSON);
-
-            HttpPost postMethod = new HttpPost("http://localhost:5000/pos/listsuspended");
-            postMethod.setEntity(requestEntity);
-
-            HttpResponse rawResponse = httpClient.execute(postMethod);
-            String out = EntityUtils.toString(rawResponse.getEntity());
-
-            SuspendedListData[] listData = POSApplication.gson.fromJson(out, SuspendedListData[].class);
-
-            for (SuspendedListData sld : listData) {
-                resumeTable.getItems().add(sld);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError(e.getMessage());
-        }
-    }
-
-    // Resume
-
-    private void resumeTransaction(int uniqueSuspendedId) {
+    public void resumeTransaction(int uniqueSuspendedId) {
         Transaction resumeData;
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -226,22 +214,4 @@ public class POSHomeController {
             basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
         }
     }
-
-    @FXML
-    private void onRtBackButtonPress() {
-        resumeTrans.setVisible(false);
-        mainHome.setVisible(true);
-        showError(null);
-    }
-
-    @FXML
-    private void onRtResumeButtonPress() {
-        showError(null);
-        if (resumeTable.getSelectionModel().getSelectedItem() == null) {
-            showError("Please select a transaction to resume.");
-            return;
-        }
-        resumeTransaction(resumeTable.getSelectionModel().getSelectedItem().getUsid());
-    }
-
 }

@@ -1,5 +1,6 @@
 package store.bubbletill.pos.views;
 
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import store.bubbletill.commons.BubbleView;
@@ -8,27 +9,29 @@ import store.bubbletill.pos.controllers.POSHomeController;
 
 public class OpeningFloatView implements BubbleView {
 
-    private POSApplication app;
-    private POSHomeController controller;
+    private final POSApplication app;
+    private final POSHomeController controller;
 
-     private Pane declareOpeningFloat;
-     private Pane dofPrompt;
-     private Pane dofDeclare;
-     private TextField dof50;
-     private TextField dof20;
-     private TextField dof10;
-     private TextField dof5;
-     private TextField dof1;
-     private TextField dof50p;
-     private TextField dof20p;
-     private TextField dof10p;
-     private TextField dof5p;
-     private TextField dof2p;
-     private TextField dof1p;
+     private final Pane declareOpeningFloat;
+     private final Pane dofPrompt;
+     private final Pane dofDeclare;
+     private final TextField dof50;
+     private final TextField dof20;
+     private final TextField dof10;
+     private final TextField dof5;
+     private final TextField dof1;
+     private final TextField dof50p;
+     private final TextField dof20p;
+     private final TextField dof10p;
+     private final TextField dof5p;
+     private final TextField dof2p;
+     private final TextField dof1p;
     
-    public OpeningFloatView(POSApplication app, POSHomeController controller, Pane declareOpeningFloat, Pane dofPrompt, Pane dofDeclare, TextField dof50, TextField dof20,
-                            TextField dof10, TextField dof5, TextField dof1, TextField dof50p, TextField dof20p,
-                            TextField dof10p, TextField dof5p, TextField dof2p, TextField dof1p) {
+    public OpeningFloatView(POSApplication app, POSHomeController controller, Pane declareOpeningFloat, Pane dofPrompt,
+                            Pane dofDeclare, TextField dof50, TextField dof20, TextField dof10, TextField dof5,
+                            TextField dof1, TextField dof50p, TextField dof20p, TextField dof10p, TextField dof5p,
+                            TextField dof2p, TextField dof1p, Button openingFloatYesButton, Button openingFloatNoButton,
+                            Button openingFloatSubmitButton) {
 
         this.app = app;
         this.controller = controller;
@@ -46,27 +49,35 @@ public class OpeningFloatView implements BubbleView {
         this.dof5p = dof5p;
         this.dof2p = dof2p;
         this.dof1p = dof1p;
+
+        openingFloatYesButton.setOnAction(e -> { onYes(); });
+        openingFloatNoButton.setOnAction(e -> { onNo(); });
+        openingFloatSubmitButton.setOnAction(e -> { onSubmit(); });
     }
 
     @Override
     public void show() {
-        
+        declareOpeningFloat.setVisible(true);
+        dofPrompt.setVisible(true);
+        dofDeclare.setVisible(false);
     }
 
     @Override
     public void hide() {
-
+        declareOpeningFloat.setVisible(false);
+        dofPrompt.setVisible(false);
+        dofDeclare.setVisible(false);
     }
 
-    private void onOpeningFloatNoButtonPress() {
-        declareOpeningFloat.setVisible(false);
-        mainHome.setVisible(true);
+    private void onNo() {
+        hide();
+        controller.homeTenderView.show();
         controller.showError(null);
         app.cashInDraw = 0;
     }
 
 
-    private void onOpeningFloatYesButtonPress() {
+    private void onYes() {
         controller.showError(null);
         if (app.managerLoginRequest("Opening Float")) {
             dofPrompt.setVisible(false);
@@ -76,7 +87,7 @@ public class OpeningFloatView implements BubbleView {
         }
     }
 
-    private void onDofSubmitPress() {
+    private void onSubmit() {
         try {
             app.cashInDraw = 0;
             app.cashInDraw += Integer.parseInt(dof50.getText()) * 50;
@@ -95,11 +106,10 @@ public class OpeningFloatView implements BubbleView {
             return;
         }
 
-        declareOpeningFloat.setVisible(false);
         //showError(null);
         controller.showError("Cash in draw: " + app.cashInDraw);
-        mainHome.setVisible(true);
+        controller.homeTenderView.show();
         app.floatKnown = true;
-
+        hide();
     }
 }

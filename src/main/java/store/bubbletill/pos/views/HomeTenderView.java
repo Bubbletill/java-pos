@@ -1,6 +1,5 @@
 package store.bubbletill.pos.views;
 
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -19,7 +18,6 @@ public class HomeTenderView implements BubbleView {
 
     private final POSApplication app;
     private final POSHomeController controller;
-    private final Stage stage;
 
      private final Pane mainHome;
      private final Pane preTransButtons;
@@ -42,16 +40,18 @@ public class HomeTenderView implements BubbleView {
 
      private final Label transactionLabel;
 
-    public HomeTenderView(POSApplication app, POSHomeController controller, Stage stage, Label transactionLabel,
+    public HomeTenderView(POSApplication app, POSHomeController controller, Label transactionLabel,
                           Pane mainHome, Pane preTransButtons, Pane transStartedButtons, Pane tenderButtons,
                           Pane transModButtons, Label categoryInputLabel, TextField categoryInputField,
                           TextField itemcodeInputField, Pane homeItemInputPane, ListView<String> basketListView,
                           Pane homeCostsPane, Pane homeCostsTenderPane, Label homeTenderTotalLabel,
                           Label homeTenderTenderLabel, Label homeTenderRemainLabel, Button tenderCashButton,
-                          Button tenderCardButton, Button tenderBackButton) {
+                          Button tenderCardButton, Button tenderBackButton, Button tenderButton, Button itemModButton,
+                          Button transModButton, Button suspendButton, Button transModVoidButton,
+                          Button transModBackButton, Button logoutButton, Button homeResumeButton) {
+
         this.app = app;
         this.controller = controller;
-        this.stage = stage;
         this.mainHome = mainHome;
         this.preTransButtons = preTransButtons;
         this.transStartedButtons = transStartedButtons;
@@ -85,6 +85,22 @@ public class HomeTenderView implements BubbleView {
 
         tenderCashButton.setOnAction(e -> { onTenderTypePress(PaymentType.CASH); });
         tenderCardButton.setOnAction(e -> { onTenderTypePress(PaymentType.CARD); });
+        tenderButton.setOnAction(e -> { onTenderButtonPress(); });
+        tenderBackButton.setOnAction(e -> { onTenderBackButtonPress(); });
+
+        itemModButton.setOnAction(e -> { onItemModButtonPress(); });
+        transModButton.setOnAction(e -> { onTransModButtonPress(); });
+        suspendButton.setOnAction(e -> { onSuspendButtonPress(); });
+
+        categoryInputField.setOnKeyReleased(this::onCategoryInputKeyPress);
+        itemcodeInputField.setOnKeyReleased(this::onItemcodeInputKeyPress);
+
+        transModBackButton.setOnAction(e -> { onTmBackButtonPress(); });
+        transModVoidButton.setOnAction(e -> { onTmVoidButtonPress(); });
+
+        homeResumeButton.setOnAction(e -> { onResumeButtonPress(); });
+
+        logoutButton.setOnAction(e -> { onLogoutButtonPress(); });
     }
 
     @Override
@@ -114,6 +130,7 @@ public class HomeTenderView implements BubbleView {
             app.dateTimeTimer.cancel();
             FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("login.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);
+            Stage stage = controller.getStage();
             stage.setTitle("Bubbletill POS 22.0.1");
             stage.setScene(scene);
             stage.setFullScreen(true);
@@ -227,6 +244,8 @@ public class HomeTenderView implements BubbleView {
         transModButtons.setVisible(true);
         transStartedButtons.setVisible(false);
     }
+
+    private void onResumeButtonPress() { controller.resumeView.show(); hide(); }
 
     private void onSuspendButtonPress() {
         app.suspendTransaction();
