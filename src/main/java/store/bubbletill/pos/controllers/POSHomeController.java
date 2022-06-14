@@ -20,16 +20,18 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import store.bubbletill.pos.POSApplication;
 import store.bubbletill.commons.*;
+import store.bubbletill.pos.views.HomeTenderView;
+import store.bubbletill.pos.views.OpeningFloatView;
+import store.bubbletill.pos.views.ResumeView;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class POSHomeController {
 
-    // Different views
+    // Home Tender View
     @FXML private Pane mainHome;
     @FXML private Pane preTransButtons;
     @FXML private Pane transStartedButtons;
@@ -47,13 +49,26 @@ public class POSHomeController {
     @FXML private Label homeTenderTenderLabel;
     @FXML private Label homeTenderRemainLabel;
 
+    @FXML private Button tenderButton;
     @FXML private Button tenderCashButton;
     @FXML private Button tenderCardButton;
     @FXML private Button tenderBackButton;
+    @FXML private Button itemModButton;
+    @FXML private Button transModButton;
+    @FXML private Button suspendButton;
+    @FXML private Button transModVoidButton;
+    @FXML private Button transModBackButton;
+    @FXML private Button logoutButton;
 
+    // Resume View
     @FXML private Pane resumeTrans;
     @FXML private TableView<SuspendedListData> resumeTable;
 
+    @FXML private Button homeResumeButton;
+    @FXML private Button rtResumeButton;
+    @FXML private Button rtBackButton;
+
+    // Opening float view
     @FXML private Pane declareOpeningFloat;
     @FXML private Pane dofPrompt;
     @FXML private Pane dofDeclare;
@@ -69,6 +84,10 @@ public class POSHomeController {
     @FXML private TextField dof2p;
     @FXML private TextField dof1p;
 
+    @FXML private Button openingFloatYesButton;
+    @FXML private Button openingFloatNoButton;
+    @FXML private Button openingFloatSubmitButton;
+
     // Top status bar
     @FXML private Label dateTimeLabel;
     @FXML private Label statusLabel;
@@ -78,33 +97,44 @@ public class POSHomeController {
     @FXML private Pane errorPane;
     @FXML private Label errorLabel;
 
+    // Views
+    public HomeTenderView homeTenderView;
+    public OpeningFloatView openingFloatView;
+    public ResumeView resumeView;
+
     private POSApplication app;
 
     @FXML
     private void initialize() {
         app = POSApplication.getInstance();
 
-        dofPrompt.setVisible(true);
-        dofDeclare.setVisible(false);
+        // Set up the views!
+        homeTenderView = new HomeTenderView(app, this, transactionLabel, mainHome, preTransButtons,
+                transStartedButtons, tenderButtons, transModButtons, categoryInputLabel, categoryInputField,
+                itemcodeInputField, homeItemInputPane, basketListView, homeCostsPane, homeCostsTenderPane,
+                homeTenderTotalLabel, homeTenderTenderLabel, homeTenderRemainLabel, tenderCashButton, tenderCardButton,
+                tenderBackButton, tenderButton, itemModButton, transModButton, suspendButton, transModVoidButton,
+                transModBackButton, logoutButton, homeResumeButton);
+
+        openingFloatView = new OpeningFloatView(app, this, declareOpeningFloat, dofPrompt, dofDeclare, dof50,
+                dof20, dof10, dof5, dof1, dof50p, dof20p, dof10p, dof5p, dof2p, dof1p, openingFloatYesButton,
+                openingFloatNoButton, openingFloatSubmitButton);
+
+        resumeView = new ResumeView(app, this, resumeTrans, resumeTable, rtResumeButton, rtBackButton);
 
         if (app.cashInDraw == -9999) {
-            declareOpeningFloat.setVisible(true);
-            mainHome.setVisible(false);
+            homeTenderView.hide();
+            openingFloatView.show();
             POSApplication.buzzer("double");
         } else {
-            declareOpeningFloat.setVisible(false);
-            mainHome.setVisible(true);
+            homeTenderView.show();
+            openingFloatView.hide();
         }
 
-        errorPane.setVisible(false);
-        preTransButtons.setVisible(true);
-        transStartedButtons.setVisible(false);
-        tenderButtons.setVisible(false);
-        transModButtons.setVisible(false);
-        resumeTrans.setVisible(false);
+        resumeView.hide();
 
-        homeCostsPane.setVisible(true);
-        homeCostsTenderPane.setVisible(false);
+        errorPane.setVisible(false);
+
 
         if (app.dateTimeTimer != null)
             app.dateTimeTimer.cancel();
@@ -124,24 +154,6 @@ public class POSHomeController {
         transactionLabel.setText("" + app.transNo);
         operatorLabel.setText(app.operator.getOperatorId());
 
-        basketListView.setCellFactory(cell -> new ListCell<>() {
-            @Override
-            protected void updateItem(String s, boolean b) {
-                super.updateItem(s, b);
-
-                if (s != null) {
-                    setText(s);
-
-                    setFont(Font.font(20));
-                }
-            }
-        });
-
-
-
-        // Setup tender buttons
-        tenderCashButton.setOnAction(e -> {onTenderTypePress(PaymentType.CASH); });
-        tenderCardButton.setOnAction(e -> {onTenderTypePress(PaymentType.CARD); });
 
         // Resume trans?
         if (app.transaction != null) {
@@ -150,14 +162,13 @@ public class POSHomeController {
             }
             homeTenderTotalLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
         }
-
-        resumeTable.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("date"));
-        resumeTable.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("reg"));
-        resumeTable.getColumns().get(2).setCellValueFactory(new PropertyValueFactory<>("oper"));
-        resumeTable.getColumns().get(3).setCellValueFactory(new PropertyValueFactory<>("stringTotal"));
     }
 
-    private void showError(String error) {
+    public Stage getStage() {
+        return (Stage) dateTimeLabel.getScene().getWindow();
+    }
+
+    public void showError(String error) {
         if (error == null) {
             errorPane.setVisible(false);
             return;
@@ -168,304 +179,7 @@ public class POSHomeController {
         POSApplication.buzzer("double");
     }
 
-    // Main Home
-
-    @FXML
-    private void onLogoutButtonPress() {
-        try {
-            app.dateTimeTimer.cancel();
-            FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("login.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);
-            Stage stage = (Stage) dateTimeLabel.getScene().getWindow();
-            stage.setTitle("Bubbletill POS 22.0.1");
-            stage.setScene(scene);
-            stage.setFullScreen(true);
-            stage.setFullScreenExitHint("");
-            stage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML private void onCategoryInputKeyPress(KeyEvent event) {
-        if (event.getCode().toString().equals("ESCAPE")) {
-            resetItemInputFields();
-            return;
-        }
-
-        if (!event.getCode().toString().equals("ENTER"))
-            return;
-
-        showError(null);
-        if (categoryInputField.getText() == null || categoryInputField.getText().isEmpty()) {
-            showError("Please enter a category.");
-            return;
-        }
-
-        ApiRequestData data;
-        try {
-            data = POSApplication.getCategory(Integer.parseInt(categoryInputField.getText()));
-        } catch (Exception e) {
-            showError("Category should be a number.");
-            return;
-        }
-
-        if (!data.isSuccess()) {
-            showError(data.getMessage());
-            return;
-        }
-
-        categoryInputLabel.setText(data.getMessage().toUpperCase());
-        categoryInputLabel.setVisible(true);
-        categoryInputField.setDisable(true);
-        itemcodeInputField.requestFocus();
-    }
-
-    @FXML private void onItemcodeInputKeyPress(KeyEvent event) {
-        if (event.getCode().toString().equals("ESCAPE")) {
-            resetItemInputFields();
-            return;
-        }
-        if (!event.getCode().toString().equals("ENTER"))
-            return;
-
-        showError(null);
-        if (itemcodeInputField.getText() == null || itemcodeInputField.getText().isEmpty()) {
-            showError("Please enter an item code.");
-            return;
-        }
-
-        ApiRequestData data;
-        try {
-            data = POSApplication.getItem(Integer.parseInt(categoryInputField.getText()), Integer.parseInt(itemcodeInputField.getText()));
-        } catch (Exception e) {
-            showError("Item code should be a number.");
-            return;
-        }
-
-        if (!data.isSuccess()) {
-            showError(data.getMessage());
-            return;
-        }
-
-        StockData stockData = POSApplication.gson.fromJson(data.getMessage(), StockData.class);
-
-        if (app.transaction == null) {
-            app.transNo++;
-            app.transaction = new Transaction(app.transNo);
-            transactionLabel.setText("" + app.transNo);
-            transStartedButtons.setVisible(true);
-            preTransButtons.setVisible(false);
-        }
-
-        app.transaction.addToBasket(stockData);
-        basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
-
-        resetItemInputFields();
-        homeTenderTotalLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
-    }
-
-    private void resetItemInputFields() {
-        categoryInputLabel.setVisible(false);
-        categoryInputField.setText("");
-        categoryInputField.setDisable(false);
-        categoryInputField.setEditable(true);
-        itemcodeInputField.setText("");
-        categoryInputField.requestFocus();
-    }
-
-    @FXML
-    private void onTenderButtonPress() {
-        tenderButtons.setVisible(true);
-        homeCostsTenderPane.setVisible(true);
-        transStartedButtons.setVisible(false);
-        homeItemInputPane.setVisible(false);
-        homeTenderRemainLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
-    }
-
-    @FXML
-    private void onReturnButtonPress() { }
-
-    @FXML
-    private void onItemModButtonPress() { }
-
-    @FXML
-    private void onTransModButtonPress() {
-        transModButtons.setVisible(true);
-        transStartedButtons.setVisible(false);
-    }
-
-    @FXML
-    private void onSuspendButtonPress() {
-        app.suspendTransaction();
-    }
-
-    @FXML
-    private void onResumeButtonPress() {
-        mainHome.setVisible(false);
-        resumeTrans.setVisible(true);
-        resumeTable.getItems().clear();
-
-        try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
-
-            StringEntity requestEntity = new StringEntity(
-                    "{\"store\":\"" + app.store + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
-                    ContentType.APPLICATION_JSON);
-
-            HttpPost postMethod = new HttpPost("http://localhost:5000/pos/listsuspended");
-            postMethod.setEntity(requestEntity);
-
-            HttpResponse rawResponse = httpClient.execute(postMethod);
-            String out = EntityUtils.toString(rawResponse.getEntity());
-
-            SuspendedListData[] listData = POSApplication.gson.fromJson(out, SuspendedListData[].class);
-
-            for (SuspendedListData sld : listData) {
-                resumeTable.getItems().add(sld);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError(e.getMessage());
-        }
-    }
-
-    // Declare Opening Float
-
-    @FXML
-    private void onOpeningFloatNoButtonPress() {
-        declareOpeningFloat.setVisible(false);
-        mainHome.setVisible(true);
-        errorPane.setVisible(false);
-        app.cashInDraw = 0;
-    }
-
-
-    @FXML
-    private void onOpeningFloatYesButtonPress() {
-        showError(null);
-        if (app.managerLoginRequest("Opening Float")) {
-            dofPrompt.setVisible(false);
-            dofDeclare.setVisible(true);
-        } else {
-            showError("Insufficient permission.");
-        }
-    }
-
-    @FXML
-    private void onDofSubmitPress() {
-        try {
-            app.cashInDraw = 0;
-            app.cashInDraw += Integer.parseInt(dof50.getText()) * 50;
-            app.cashInDraw += Integer.parseInt(dof20.getText()) * 20;
-            app.cashInDraw += Integer.parseInt(dof10.getText()) * 10;
-            app.cashInDraw += Integer.parseInt(dof5.getText()) * 5;
-            app.cashInDraw += Integer.parseInt(dof1.getText());
-            app.cashInDraw += Integer.parseInt(dof50p.getText()) * 0.5;
-            app.cashInDraw += Integer.parseInt(dof20p.getText()) * 0.2;
-            app.cashInDraw += Integer.parseInt(dof10p.getText()) * 0.1;
-            app.cashInDraw += Integer.parseInt(dof5p.getText()) * 0.05;
-            app.cashInDraw += Integer.parseInt(dof2p.getText()) * 0.02;
-            app.cashInDraw += Integer.parseInt(dof1p.getText()) * 0.01;
-        } catch (Exception e) {
-            showError("Please populate all fields with a valid number.");
-            return;
-        }
-
-        declareOpeningFloat.setVisible(false);
-        //showError(null);
-        showError("Cash in draw: " + app.cashInDraw);
-        mainHome.setVisible(true);
-        app.floatKnown = true;
-
-    }
-
-    // Tender
-    private void onTenderTypePress(PaymentType type) {
-        showError(null);
-        TextInputDialog dialog = new TextInputDialog("" + Formatters.decimalFormatter.format(app.transaction.getRemainingTender()));
-        dialog.setTitle(type.getLocalName() + " Tender");
-        dialog.setHeaderText("Please enter tender amount");
-        dialog.setContentText("£");
-        dialog.showAndWait().ifPresent(input -> handleTender(type, input));
-    }
-
-    private void handleTender(PaymentType type, String input) {
-        double amount;
-        try {
-            amount = Double.parseDouble(input);
-        } catch (Exception e) {
-            showError("Failed to tender: please enter a valid amount.");
-            return;
-        }
-
-        if (type == PaymentType.CARD && amount > app.transaction.getBasketTotal()) {
-            showError("Failed to tender: card tender cannot be greater than basket total.");
-            return;
-        }
-
-        app.transaction.addTender(type, amount);
-
-        try {
-            if (app.checkAndSubmit())
-                return;
-
-
-            basketListView.getItems().add(type.getLocalName() + " - £" + Formatters.decimalFormatter.format(amount));
-            tenderBackButton.setText("Void Tender");
-            homeTenderTenderLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getTenderTotal()));
-            homeTenderRemainLabel.setText("£" + Formatters.decimalFormatter.format((app.transaction.getBasketTotal() - app.transaction.getTenderTotal())));
-        } catch (Exception e) {
-            e.printStackTrace();
-            app.transaction.getTender().remove(type);
-            showError(e.getMessage());
-        }
-    }
-
-    @FXML private void onTenderBackButtonPress() {
-        if (tenderBackButton.getText().equals("Void Tender")) {
-            tenderBackButton.setText("Back");
-            for (Map.Entry<PaymentType, Double> e : app.transaction.getTender().entrySet()) {
-                String toRemove = e.getKey().getLocalName() + " - £" + Formatters.decimalFormatter.format(e.getValue());
-                basketListView.getItems().removeIf(item -> item.equals(toRemove));
-                basketListView.refresh();
-            }
-            app.transaction.voidTender();
-            homeTenderTenderLabel.setText("£0.00");
-            homeTenderRemainLabel.setText("£0.00");
-        }
-
-        transStartedButtons.setVisible(true);
-        homeCostsTenderPane.setVisible(false);
-        tenderButtons.setVisible(false);
-        homeItemInputPane.setVisible(true);
-        categoryInputLabel.requestFocus();
-    }
-
-    // Trans Mod
-    @FXML private void onTmVoidButtonPress() {
-        if (!app.managerLoginRequest("Transaction Void")) {
-            showError("Insufficient permission.");
-            return;
-        }
-
-        app.transaction.setVoided(true);
-        try {
-            app.submit();
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError(e.getMessage());
-        }
-    }
-
-    @FXML private void onTmBackButtonPress() {
-        transStartedButtons.setVisible(true);
-        transModButtons.setVisible(false);
-    }
-
-    // Resume
-
-    private void resumeTransaction(int uniqueSuspendedId) {
+    public void resumeTransaction(int uniqueSuspendedId) {
         Transaction resumeData;
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -500,22 +214,4 @@ public class POSHomeController {
             basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
         }
     }
-
-    @FXML
-    private void onRtBackButtonPress() {
-        resumeTrans.setVisible(false);
-        mainHome.setVisible(true);
-        showError(null);
-    }
-
-    @FXML
-    private void onRtResumeButtonPress() {
-        showError(null);
-        if (resumeTable.getSelectionModel().getSelectedItem() == null) {
-            showError("Please select a transaction to resume.");
-            return;
-        }
-        resumeTransaction(resumeTable.getSelectionModel().getSelectedItem().getUsid());
-    }
-
 }
