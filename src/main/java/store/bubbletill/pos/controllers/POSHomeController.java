@@ -20,6 +20,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import store.bubbletill.pos.POSApplication;
 import store.bubbletill.commons.*;
+import store.bubbletill.pos.views.AdminView;
 import store.bubbletill.pos.views.HomeTenderView;
 import store.bubbletill.pos.views.OpeningFloatView;
 import store.bubbletill.pos.views.ResumeView;
@@ -59,6 +60,7 @@ public class POSHomeController {
     @FXML private Button transModVoidButton;
     @FXML private Button transModBackButton;
     @FXML private Button logoutButton;
+    @FXML private Button adminButton;
 
     // Resume View
     @FXML private Pane resumeTrans;
@@ -88,6 +90,13 @@ public class POSHomeController {
     @FXML private Button openingFloatNoButton;
     @FXML private Button openingFloatSubmitButton;
 
+    // Admin View
+    @FXML private Pane adminPane;
+    @FXML private Button adminNoSaleButton;
+    @FXML private Button adminPostVoidButton;
+    @FXML private Button adminXReadButton;
+    @FXML private Button adminBackButton;
+
     // Top status bar
     @FXML private Label dateTimeLabel;
     @FXML private Label statusLabel;
@@ -101,6 +110,7 @@ public class POSHomeController {
     public HomeTenderView homeTenderView;
     public OpeningFloatView openingFloatView;
     public ResumeView resumeView;
+    public AdminView adminView;
 
     private POSApplication app;
 
@@ -114,13 +124,16 @@ public class POSHomeController {
                 itemcodeInputField, homeItemInputPane, basketListView, homeCostsPane, homeCostsTenderPane,
                 homeTenderTotalLabel, homeTenderTenderLabel, homeTenderRemainLabel, tenderCashButton, tenderCardButton,
                 tenderBackButton, tenderButton, itemModButton, transModButton, suspendButton, transModVoidButton,
-                transModBackButton, logoutButton, homeResumeButton);
+                transModBackButton, logoutButton, homeResumeButton, adminButton);
 
         openingFloatView = new OpeningFloatView(app, this, declareOpeningFloat, dofPrompt, dofDeclare, dof50,
                 dof20, dof10, dof5, dof1, dof50p, dof20p, dof10p, dof5p, dof2p, dof1p, openingFloatYesButton,
                 openingFloatNoButton, openingFloatSubmitButton);
 
         resumeView = new ResumeView(app, this, resumeTrans, resumeTable, rtResumeButton, rtBackButton);
+
+        adminView = new AdminView(app, this, adminPane, adminNoSaleButton, adminPostVoidButton,
+                adminXReadButton, adminBackButton);
 
         if (app.cashInDraw == -9999) {
             homeTenderView.hide();
@@ -132,6 +145,7 @@ public class POSHomeController {
         }
 
         resumeView.hide();
+        adminView.hide();
 
         errorPane.setVisible(false);
 
@@ -169,6 +183,10 @@ public class POSHomeController {
     }
 
     public void showError(String error) {
+        showError(error, true);
+    }
+
+    public void showError(String error, boolean buzzer) {
         if (error == null) {
             errorPane.setVisible(false);
             return;
@@ -176,7 +194,8 @@ public class POSHomeController {
 
         errorPane.setVisible(true);
         errorLabel.setText(error);
-        POSApplication.buzzer("double");
+        if (buzzer)
+            POSApplication.buzzer("double");
     }
 
     public void resumeTransaction(int uniqueSuspendedId) {
@@ -213,5 +232,83 @@ public class POSHomeController {
         for (StockData stockData : resumeData.getBasket()) {
             basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
         }
+    }
+
+    public void performXRead() {
+        showError("Performing X Read...", false);
+        TransactionListData[] listData;
+        try {
+            HttpClient httpClient = HttpClientBuilder.create().build();
+
+            String todaysDate = Formatters.dateFormatter.format(LocalDateTime.now());
+            StringEntity requestEntity = new StringEntity(
+                    "{"
+                            + "\"store\": \"" + app.store
+                            + "\", \"startDate\": \"" + todaysDate
+                            + "\", \"endDate\": \"" + todaysDate
+                            + "\", \"startTime\": \"" + "00:00"
+                            + "\", \"endTime\": \"" + "23:59"
+                            + "\", \"register\": \"" + app.register
+                            + "\", \"operator\": \"" + ""
+                            + "\", \"startTotal\": \"" + Double.MIN_VALUE
+                            + "\", \"endTotal\": \"" + Double.MAX_VALUE
+                            + "\", \"token\" :\"" + app.accessToken
+                            + "\"}",
+                    ContentType.APPLICATION_JSON);
+
+            HttpPost postMethod = new HttpPost("http://localhost:5000/bo/listtransactions");
+            postMethod.setEntity(requestEntity);
+
+            HttpResponse rawResponse = httpClient.execute(postMethod);
+            String out = EntityUtils.toString(rawResponse.getEntity());
+
+            listData = POSApplication.gson.fromJson(out, TransactionListData[].class);
+
+            if (listData.length == 0) {
+                showError("Cannot perform X Read on 0 transactions");
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError(e.getMessage());
+            return;
+        }
+
+        XReadData data = new XReadData(app.store, app.register, app.operator.getOperatorId());
+
+        data.setTransactionCount(listData.length);
+        data.setRegOpened("NA");
+        data.setRegClosed("NA");
+        for (TransactionListData listItem : listData) {
+            Transaction items = POSApplication.gson.fromJson(listItem.getItems(), Transaction.class);
+
+            if (items.isVoided()) {
+                data.incrementTransVoidTotal();
+
+                data.getTotalPerTransactionType().putIfAbsent(listItem.getType(), 0.0);
+                data.getTotalPerTransactionType().put(listItem.getType(), data.getTotalPerTransactionType().get(listItem.getType()) + listItem.getTotal());
+
+                continue;
+            }
+
+            data.incrementGrandTotal(listItem.getTotal());
+            data.incrementUnitsSold(items.getBasket().size());
+
+            for (StockData stockData : items.getBasket()) {
+                data.getTotalPerCategory().putIfAbsent(stockData.getCategory(), 0.0);
+                data.getTotalPerCategory().put(stockData.getCategory(), data.getTotalPerCategory().get(stockData.getCategory()) + stockData.getPrice());
+            }
+
+            for (Map.Entry<PaymentType, Double> e : items.getTender().entrySet()) {
+                data.getTotalPerPaymentType().putIfAbsent(e.getKey(), 0.0);
+                data.getTotalPerPaymentType().put(e.getKey(), data.getTotalPerPaymentType().get(e.getKey()) + e.getValue());
+            }
+
+            data.getTotalPerTransactionType().putIfAbsent(listItem.getType(), 0.0);
+            data.getTotalPerTransactionType().put(listItem.getType(), data.getTotalPerTransactionType().get(listItem.getType()) + listItem.getTotal());
+        }
+
+        System.out.println(POSApplication.gson.toJson(data));
+        showError(null);
     }
 }

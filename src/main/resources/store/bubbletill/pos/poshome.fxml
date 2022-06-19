@@ -15,7 +15,7 @@
 
 <AnchorPane prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="store.bubbletill.pos.controllers.POSHomeController">
    <children>
-      <Pane fx:id="mainHome" layoutY="70.0" prefHeight="1010.0" prefWidth="1920.0">
+      <Pane fx:id="mainHome" layoutY="70.0" prefHeight="1010.0" prefWidth="1920.0" visible="false">
          <children>
             <Pane fx:id="homeItemInputPane" layoutX="709.0" layoutY="83.0" prefHeight="567.0" prefWidth="986.0">
                <children>
@@ -411,6 +411,30 @@
                   <TableColumn prefWidth="165.0" text="Total" />
               </columns>
             </TableView>
+         </children>
+      </Pane>
+      <Pane fx:id="adminPane" layoutY="70.0" prefHeight="1010.0" prefWidth="1920.0">
+         <children>
+            <Button fx:id="adminNoSaleButton" layoutX="26.0" layoutY="890.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="No Sale">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Button>
+            <Button fx:id="adminPostVoidButton" layoutX="217.0" layoutY="890.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Post Void">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Button>
+            <Button fx:id="adminXReadButton" layoutX="406.0" layoutY="890.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="X Read">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Button>
+            <Button fx:id="adminBackButton" layoutX="1722.0" layoutY="890.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Back">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Button>
          </children>
       </Pane>
    </children>

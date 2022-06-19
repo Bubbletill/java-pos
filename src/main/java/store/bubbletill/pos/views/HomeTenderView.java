@@ -48,7 +48,7 @@ public class HomeTenderView implements BubbleView {
                           Label homeTenderTenderLabel, Label homeTenderRemainLabel, Button tenderCashButton,
                           Button tenderCardButton, Button tenderBackButton, Button tenderButton, Button itemModButton,
                           Button transModButton, Button suspendButton, Button transModVoidButton,
-                          Button transModBackButton, Button logoutButton, Button homeResumeButton) {
+                          Button transModBackButton, Button logoutButton, Button homeResumeButton, Button adminButton) {
 
         this.app = app;
         this.controller = controller;
@@ -101,6 +101,8 @@ public class HomeTenderView implements BubbleView {
         homeResumeButton.setOnAction(e -> { onResumeButtonPress(); });
 
         logoutButton.setOnAction(e -> { onLogoutButtonPress(); });
+
+        adminButton.setOnAction(e -> { onAdminButtonPress(); });
     }
 
     @Override
@@ -226,6 +228,11 @@ public class HomeTenderView implements BubbleView {
         categoryInputField.setEditable(true);
         itemcodeInputField.setText("");
         categoryInputField.requestFocus();
+    }
+
+    private void onAdminButtonPress() {
+        hide();
+        controller.adminView.show();
     }
 
     private void onTenderButtonPress() {
