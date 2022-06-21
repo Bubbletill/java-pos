@@ -97,7 +97,7 @@ public class POSApplication extends Application {
 
             // Transaction number
             StringEntity requestEntity = new StringEntity(
-                    "{\"store\":\"" + store + "\",\"reg\":\"" + register + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
+                    "{\"store\":\"" + store + "\",\"reg\":\"" + register + "\", \"token\":\"" + accessToken + "\"}",
                     ContentType.APPLICATION_JSON);
 
             HttpPost methodPost = new HttpPost(backendUrl + "/pos/today");
@@ -109,7 +109,7 @@ public class POSApplication extends Application {
 
             // Load categories
             requestEntity = new StringEntity(
-                    "{\"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
+                    "{\"token\":\"" + accessToken + "\"}",
                     ContentType.APPLICATION_JSON);
 
             methodPost = new HttpPost(backendUrl + "/stock/categories");
@@ -124,7 +124,7 @@ public class POSApplication extends Application {
 
             // Load stock
             requestEntity = new StringEntity(
-                    "{\"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
+                    "{\"token\":\"" + accessToken + "\"}",
                     ContentType.APPLICATION_JSON);
 
             methodPost = new HttpPost(backendUrl + "/stock/items");
@@ -137,7 +137,7 @@ public class POSApplication extends Application {
 
             // Load operators
             requestEntity = new StringEntity(
-                    "{\"store\": \"" + store + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
+                    "{\"store\": \"" + store + "\", \"token\":\"" + accessToken + "\"}",
                     ContentType.APPLICATION_JSON);
 
             methodPost = new HttpPost(backendUrl + "/bo/listoperators");
