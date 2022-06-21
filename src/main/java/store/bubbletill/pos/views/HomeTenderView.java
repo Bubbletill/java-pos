@@ -160,7 +160,7 @@ public class HomeTenderView implements BubbleView {
 
         ApiRequestData data;
         try {
-            data = POSApplication.getCategory(Integer.parseInt(categoryInputField.getText()));
+            data = app.getCategory(Integer.parseInt(categoryInputField.getText()));
         } catch (Exception e) {
             controller.showError("Category should be a number.");
             return;
@@ -193,7 +193,7 @@ public class HomeTenderView implements BubbleView {
 
         ApiRequestData data;
         try {
-            data = POSApplication.getItem(Integer.parseInt(categoryInputField.getText()), Integer.parseInt(itemcodeInputField.getText()));
+            data = app.getItem(Integer.parseInt(categoryInputField.getText()), Integer.parseInt(itemcodeInputField.getText()));
         } catch (Exception e) {
             controller.showError("Item code should be a number.");
             return;
@@ -215,7 +215,7 @@ public class HomeTenderView implements BubbleView {
         }
 
         app.transaction.addToBasket(stockData);
-        basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
+        basketListView.getItems().add("[" + app.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
 
         resetItemInputFields();
         homeTenderTotalLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));

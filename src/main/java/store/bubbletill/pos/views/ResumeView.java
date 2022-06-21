@@ -52,7 +52,7 @@ public class ResumeView implements BubbleView {
                     "{\"store\":\"" + app.store + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost("http://localhost:5000/pos/listsuspended");
+            HttpPost postMethod = new HttpPost(POSApplication.backendUrl + "/pos/listsuspended");
             postMethod.setEntity(requestEntity);
 
             HttpResponse rawResponse = httpClient.execute(postMethod);

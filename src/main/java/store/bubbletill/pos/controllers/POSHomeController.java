@@ -172,7 +172,7 @@ public class POSHomeController {
         // Resume trans?
         if (app.transaction != null) {
             for (StockData stockData : app.transaction.getBasket()) {
-                basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()));
+                basketListView.getItems().add("[" + app.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()));
             }
             homeTenderTotalLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
         }
@@ -207,7 +207,7 @@ public class POSHomeController {
                     "{\"usid\":\"" + uniqueSuspendedId + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost("http://localhost:5000/pos/resume");
+            HttpPost postMethod = new HttpPost(POSApplication.backendUrl + "/pos/resume");
             postMethod.setEntity(requestEntity);
 
             HttpResponse rawResponse = httpClient.execute(postMethod);
@@ -230,7 +230,7 @@ public class POSHomeController {
         homeTenderTotalLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
 
         for (StockData stockData : resumeData.getBasket()) {
-            basketListView.getItems().add("[" + POSApplication.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
+            basketListView.getItems().add("[" + app.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
         }
     }
 
@@ -256,7 +256,7 @@ public class POSHomeController {
                             + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost("http://localhost:5000/bo/listtransactions");
+            HttpPost postMethod = new HttpPost(POSApplication.backendUrl + "/bo/listtransactions");
             postMethod.setEntity(requestEntity);
 
             HttpResponse rawResponse = httpClient.execute(postMethod);
@@ -277,6 +277,7 @@ public class POSHomeController {
         XReadData data = new XReadData(app.store, app.register, app.operator.getOperatorId());
 
         data.setTransactionCount(listData.length);
+        data.setSystemCashInDraw(app.cashInDraw);
         data.setRegOpened("NA");
         data.setRegClosed("NA");
         for (TransactionListData listItem : listData) {
@@ -291,24 +292,56 @@ public class POSHomeController {
                 continue;
             }
 
+            // Totals
             data.incrementGrandTotal(listItem.getTotal());
             data.incrementUnitsSold(items.getBasket().size());
 
+            // Total per category
             for (StockData stockData : items.getBasket()) {
                 data.getTotalPerCategory().putIfAbsent(stockData.getCategory(), 0.0);
                 data.getTotalPerCategory().put(stockData.getCategory(), data.getTotalPerCategory().get(stockData.getCategory()) + stockData.getPrice());
             }
 
+            // Total per payment type
             for (Map.Entry<PaymentType, Double> e : items.getTender().entrySet()) {
                 data.getTotalPerPaymentType().putIfAbsent(e.getKey(), 0.0);
                 data.getTotalPerPaymentType().put(e.getKey(), data.getTotalPerPaymentType().get(e.getKey()) + e.getValue());
             }
 
+            // Total per transaction type
             data.getTotalPerTransactionType().putIfAbsent(listItem.getType(), 0.0);
             data.getTotalPerTransactionType().put(listItem.getType(), data.getTotalPerTransactionType().get(listItem.getType()) + listItem.getTotal());
+
+            // Cash in draw
+            double change = 0;
+            if (items.getTender().containsKey(PaymentType.CASH)) {
+                data.incrementCashInDraw(items.getTender().get(PaymentType.CASH));
+
+                if (items.getTender().get(PaymentType.CASH) > items.getBasketTotal())
+                    change = items.getTender().get(PaymentType.CASH) - items.getBasketTotal();
+            }
+            data.subtractCashInDraw(change);
         }
 
-        System.out.println(POSApplication.gson.toJson(data));
-        showError(null);
+        String unformatted = POSApplication.gson.toJson(data);
+        System.out.println(unformatted);
+        try {
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            String items = unformatted.replaceAll("\"", "\\\\\"");
+            StringEntity requestEntity = new StringEntity(
+                    "{"
+                            + "\"data\": \"" + items
+                            + "\"}",
+                    ContentType.APPLICATION_JSON);
+
+            HttpPost postMethod = new HttpPost("http://localhost:5001/print/xread");
+            postMethod.setEntity(requestEntity);
+
+            HttpResponse rawResponse = httpClient.execute(postMethod);
+            showError(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError(e.getMessage());
+        }
     }
 }

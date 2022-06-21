@@ -3,9 +3,18 @@ package store.bubbletill.pos.views;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
-import store.bubbletill.commons.BubbleView;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
+import store.bubbletill.commons.*;
 import store.bubbletill.pos.POSApplication;
 import store.bubbletill.pos.controllers.POSHomeController;
+
+import java.time.LocalDateTime;
 
 public class OpeningFloatView implements BubbleView {
 
@@ -71,9 +80,9 @@ public class OpeningFloatView implements BubbleView {
 
     private void onNo() {
         hide();
-        controller.homeTenderView.show();
         controller.showError(null);
-        app.cashInDraw = 0;
+        controller.homeTenderView.show();
+        app.cashInDraw = getDBExpectCashInDraw();
     }
 
 
@@ -106,10 +115,60 @@ public class OpeningFloatView implements BubbleView {
             return;
         }
 
-        //showError(null);
-        controller.showError("Cash in draw: " + app.cashInDraw);
+        controller.showError(null);
         controller.homeTenderView.show();
         app.floatKnown = true;
         hide();
+    }
+
+    private double getDBExpectCashInDraw() {
+        TransactionListData[] listData;
+        double amount = 0;
+        try {
+            HttpClient httpClient = HttpClientBuilder.create().build();
+
+            String todaysDate = Formatters.dateFormatter.format(LocalDateTime.now());
+            StringEntity requestEntity = new StringEntity(
+                    "{"
+                            + "\"store\": \"" + app.store
+                            + "\", \"startDate\": \"" + todaysDate
+                            + "\", \"endDate\": \"" + todaysDate
+                            + "\", \"startTime\": \"" + "00:00"
+                            + "\", \"endTime\": \"" + "23:59"
+                            + "\", \"register\": \"" + app.register
+                            + "\", \"operator\": \"" + ""
+                            + "\", \"startTotal\": \"" + Double.MIN_VALUE
+                            + "\", \"endTotal\": \"" + Double.MAX_VALUE
+                            + "\", \"token\" :\"" + app.accessToken
+                            + "\"}",
+                    ContentType.APPLICATION_JSON);
+
+            HttpPost postMethod = new HttpPost(POSApplication.backendUrl + "/bo/listtransactions");
+            postMethod.setEntity(requestEntity);
+
+            HttpResponse rawResponse = httpClient.execute(postMethod);
+            String out = EntityUtils.toString(rawResponse.getEntity());
+
+            listData = POSApplication.gson.fromJson(out, TransactionListData[].class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            controller.showError(e.getMessage());
+            return 0;
+        }
+
+        for (TransactionListData listItem : listData) {
+            Transaction items = POSApplication.gson.fromJson(listItem.getItems(), Transaction.class);
+
+            double change = 0;
+            if (items.getTender().containsKey(PaymentType.CASH)) {
+                amount += items.getTender().get(PaymentType.CASH);
+
+                if (items.getTender().get(PaymentType.CASH) > items.getBasketTotal())
+                    change = items.getTender().get(PaymentType.CASH) - items.getBasketTotal();
+            }
+            amount -= change;
+        }
+
+        return amount;
     }
 }

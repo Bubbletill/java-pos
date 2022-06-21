@@ -23,18 +23,14 @@ import store.bubbletill.commons.ApiRequestData;
 import store.bubbletill.commons.OperatorData;
 
 public class LoginController {
+    
+    private final POSApplication app = POSApplication.getInstance();
 
-    @FXML
-    private TextField userIdForm;
+    @FXML private TextField userIdForm;
+    @FXML private PasswordField passwordForm;
 
-    @FXML
-    private PasswordField passwordForm;
-
-    @FXML
-    private Pane errorPane;
-
-    @FXML
-    private Label errorLabel;
+    @FXML private Pane errorPane;
+    @FXML private Label errorLabel;
 
     @FXML
     public void initialize() {
@@ -57,27 +53,39 @@ public class LoginController {
     protected void onLoginButtonClick() {
         showError(null);
         try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
+            
+            if (app.operators.containsKey(userIdForm.getText())) {
+                OperatorData operator = app.operators.get(userIdForm.getText());
+                if (!operator.getPassword().equals(passwordForm.getText())) {
+                    showError("Error: Invalid user id or password.");
+                    return;
+                }
 
-            StringEntity requestEntity = new StringEntity(
-                    "{\"user\":\"" + userIdForm.getText() + "\",\"password\":\"" + passwordForm.getText() + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
-                    ContentType.APPLICATION_JSON);
+                app.operator = operator;
+            } else {
+                HttpClient httpClient = HttpClientBuilder.create().build();
 
-            HttpPost postMethod = new HttpPost("http://localhost:5000/pos/login");
-            postMethod.setEntity(requestEntity);
+                StringEntity requestEntity = new StringEntity(
+                        "{\"user\":\"" + userIdForm.getText() + "\",\"password\":\"" + passwordForm.getText() + "\", \"token\":\"" + app.accessToken + "\"}",
+                        ContentType.APPLICATION_JSON);
 
-            HttpResponse rawResponse = httpClient.execute(postMethod);
-            String out = EntityUtils.toString(rawResponse.getEntity());
+                HttpPost postMethod = new HttpPost(POSApplication.backendUrl + "/pos/login");
+                postMethod.setEntity(requestEntity);
 
-            ApiRequestData data = POSApplication.gson.fromJson(out, ApiRequestData.class);
+                HttpResponse rawResponse = httpClient.execute(postMethod);
+                String out = EntityUtils.toString(rawResponse.getEntity());
 
-            if (!data.isSuccess()) {
-                showError("Error: " + data.getMessage());
-                POSApplication.buzzer("double");
-                return;
+                ApiRequestData data = POSApplication.gson.fromJson(out, ApiRequestData.class);
+
+                if (!data.isSuccess()) {
+                    showError("Error: " + data.getMessage());
+                    POSApplication.buzzer("double");
+                    return;
+                }
+
+                app.operator = POSApplication.gson.fromJson(out, OperatorData.class);
+                app.operators.put(app.operator.getOperatorId(), app.operator);
             }
-
-            POSApplication.getInstance().operator = POSApplication.gson.fromJson(out, OperatorData.class);
 
             FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("poshome.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);

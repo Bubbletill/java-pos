@@ -29,8 +29,7 @@ import store.bubbletill.pos.controllers.StartupErrorController;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.Timer;
+import java.util.*;
 
 public class POSApplication extends Application {
 
@@ -47,12 +46,18 @@ public class POSApplication extends Application {
     public int register;
     public int transNo = 0;
     public String accessToken;
+    public static String backendUrl;
 
     public Transaction transaction;
 
     // Cash data
     public double cashInDraw = -9999;
     public boolean floatKnown = false;
+
+    // Cache info
+    public HashMap<Integer, String> categories = new HashMap<>();
+    public ArrayList<StockData> stock = new ArrayList<>();
+    public HashMap<String, OperatorData> operators = new HashMap<>();
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -83,19 +88,70 @@ public class POSApplication extends Application {
             accessToken = out;
             System.out.println("Loaded access token");
 
+            // Backend url
+            method = new HttpGet("http://localhost:5001/info/backend");
+            rawResponse = httpClient.execute(method);
+            out = EntityUtils.toString(rawResponse.getEntity());
+            backendUrl = out;
+            System.out.println("Loaded backend url " + out);
+
             // Transaction number
             StringEntity requestEntity = new StringEntity(
                     "{\"store\":\"" + store + "\",\"reg\":\"" + register + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost methodPost = new HttpPost("http://localhost:5000/pos/today");
+            HttpPost methodPost = new HttpPost(backendUrl + "/pos/today");
             methodPost.setEntity(requestEntity);
             rawResponse = httpClient.execute(methodPost);
             out = EntityUtils.toString(rawResponse.getEntity());
             transNo = Integer.parseInt(out);
             System.out.println("Loaded transaction number");
+
+            // Load categories
+            requestEntity = new StringEntity(
+                    "{\"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
+                    ContentType.APPLICATION_JSON);
+
+            methodPost = new HttpPost(backendUrl + "/stock/categories");
+            methodPost.setEntity(requestEntity);
+            rawResponse = httpClient.execute(methodPost);
+            out = EntityUtils.toString(rawResponse.getEntity());
+            CategoryData[] categoryData = gson.fromJson(out, CategoryData[].class);
+            for (CategoryData c : categoryData) {
+                categories.put(c.getId(), c.getDescription());
+            }
+            System.out.println("Loaded categories");
+
+            // Load stock
+            requestEntity = new StringEntity(
+                    "{\"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
+                    ContentType.APPLICATION_JSON);
+
+            methodPost = new HttpPost(backendUrl + "/stock/items");
+            methodPost.setEntity(requestEntity);
+            rawResponse = httpClient.execute(methodPost);
+            out = EntityUtils.toString(rawResponse.getEntity());
+            StockData[] stockData = gson.fromJson(out, StockData[].class);
+            stock.addAll(Arrays.asList(stockData));
+            System.out.println("Loaded stock");
+
+            // Load operators
+            requestEntity = new StringEntity(
+                    "{\"store\": \"" + store + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
+                    ContentType.APPLICATION_JSON);
+
+            methodPost = new HttpPost(backendUrl + "/bo/listoperators");
+            methodPost.setEntity(requestEntity);
+            rawResponse = httpClient.execute(methodPost);
+            out = EntityUtils.toString(rawResponse.getEntity());
+            OperatorData[] operatorData = gson.fromJson(out, OperatorData[].class);
+            for (OperatorData o : operatorData) {
+                operators.put(o.getOperatorId(), o);
+            }
+            System.out.println("Loaded operators");
+
         } catch (Exception e) {
-            System.out.println("Reg get failed: " + e.getMessage());
+            e.printStackTrace();
             launchError(stage, "Failed to retrieve register information: " + e.getMessage());
             return;
         }
@@ -124,13 +180,16 @@ public class POSApplication extends Application {
     }
 
     public static void buzzer(String type) {
-        try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
-            HttpGet method = new HttpGet("http://localhost:5001/buzzer/" + type);
-            httpClient.execute(method);
-        } catch (Exception e) {
-            System.out.println("Buzzer failed: " + e.getMessage());
-        }
+        new Thread(() -> {
+            try {
+                HttpClient httpClient = HttpClientBuilder.create().build();
+                HttpGet method = new HttpGet("http://localhost:5001/buzzer/" + type);
+
+                httpClient.execute(method);
+            } catch (Exception e) {
+                System.out.println("Buzzer failed: " + e.getMessage());
+            }
+        }).start();
     }
 
     public static void launchError(Stage stage, String message) {
@@ -151,7 +210,10 @@ public class POSApplication extends Application {
         }
     }
 
-    public static ApiRequestData getCategory(int number) {
+    public ApiRequestData getCategory(int number) {
+        if (categories.containsKey(number))
+            return new ApiRequestData(true, categories.get(number));
+
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
 
@@ -159,7 +221,7 @@ public class POSApplication extends Application {
                     "{\"category\":\"" + number + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost("http://localhost:5000/stock/category");
+            HttpPost postMethod = new HttpPost(backendUrl + "/stock/category");
             postMethod.setEntity(requestEntity);
 
             HttpResponse rawResponse = httpClient.execute(postMethod);
@@ -170,7 +232,10 @@ public class POSApplication extends Application {
         }
     }
 
-    public static ApiRequestData getItem(int category, int code) {
+    public ApiRequestData getItem(int category, int code) {
+        if (stock.stream().anyMatch(i -> i.getCategory() == category && i.getItemCode() == code))
+            return new ApiRequestData(true, gson.toJson(stock.stream().filter(i -> i.getCategory() == category && i.getItemCode() == code).findFirst().get()));
+
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
 
@@ -178,7 +243,7 @@ public class POSApplication extends Application {
                     "{\"category\":\"" + category + "\",\"code\":\"" + code + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost("http://localhost:5000/stock/item");
+            HttpPost postMethod = new HttpPost(backendUrl + "/stock/item");
             postMethod.setEntity(requestEntity);
 
             HttpResponse rawResponse = httpClient.execute(postMethod);
@@ -187,6 +252,9 @@ public class POSApplication extends Application {
             if (!data.isSuccess()) {
                 return data;
             }
+
+            StockData stockData = POSApplication.gson.fromJson(out, StockData.class);
+            stock.add(stockData);
 
             return new ApiRequestData(true, out);
         } catch (Exception e) {
@@ -230,7 +298,7 @@ public class POSApplication extends Application {
                             + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost("http://localhost:5000/pos/suspend");
+            HttpPost postMethod = new HttpPost(backendUrl + "/pos/suspend");
             postMethod.setEntity(requestEntity);
             HttpResponse rawResponse = httpClient.execute(postMethod);
 
@@ -276,7 +344,7 @@ public class POSApplication extends Application {
                         + "\"}",
                 ContentType.APPLICATION_JSON);
 
-        HttpPost postMethod = new HttpPost("http://localhost:5000/pos/submit");
+        HttpPost postMethod = new HttpPost(backendUrl + "/pos/submit");
         postMethod.setEntity(requestEntity);
 
         HttpResponse rawResponse = httpClient.execute(postMethod);
@@ -415,13 +483,22 @@ public class POSApplication extends Application {
 
     private boolean isManager(String username, String password) {
         try {
+            if (operators.containsKey(username)) {
+                OperatorData od = operators.get(username);
+                if (!od.getPassword().equals(password)) {
+                    return false;
+                }
+
+                return od.isManager();
+            }
+
             HttpClient httpClient = HttpClientBuilder.create().build();
 
             StringEntity requestEntity = new StringEntity(
                     "{\"user\":\"" + username + "\",\"password\":\"" + password + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost("http://localhost:5000/pos/login");
+            HttpPost postMethod = new HttpPost(backendUrl + "/pos/login");
             postMethod.setEntity(requestEntity);
 
             HttpResponse rawResponse = httpClient.execute(postMethod);
