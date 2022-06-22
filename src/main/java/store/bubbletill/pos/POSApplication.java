@@ -155,8 +155,7 @@ public class POSApplication extends Application {
                 Platform.runLater(this::postInit);
             } catch (Exception e) {
                 e.printStackTrace();
-                launchError(stage, "Failed to retrieve register information: " + e.getMessage());
-                return;
+                Platform.runLater(() -> launchError(new Stage(), "Failed to launch POS: " + e.getMessage()));
             } finally {
                 if (splashStage != null) { Platform.runLater(splashStage::close); }
             }
