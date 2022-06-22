@@ -95,6 +95,7 @@ public class POSHomeController {
     @FXML private Button adminNoSaleButton;
     @FXML private Button adminPostVoidButton;
     @FXML private Button adminXReadButton;
+    @FXML private Button adminResyncDatabaseButton;
     @FXML private Button adminBackButton;
 
     // Top status bar
@@ -133,7 +134,7 @@ public class POSHomeController {
         resumeView = new ResumeView(app, this, resumeTrans, resumeTable, rtResumeButton, rtBackButton);
 
         adminView = new AdminView(app, this, adminPane, adminNoSaleButton, adminPostVoidButton,
-                adminXReadButton, adminBackButton);
+                adminXReadButton, adminResyncDatabaseButton, adminBackButton);
 
         if (app.cashInDraw == -9999) {
             homeTenderView.hide();

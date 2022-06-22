@@ -425,12 +425,17 @@
                   <Font size="24.0" />
                </font>
             </Button>
-            <Button fx:id="adminXReadButton" layoutX="406.0" layoutY="890.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="X Read">
+            <Button fx:id="adminXReadButton" layoutX="408.0" layoutY="890.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="X Read">
                <font>
                   <Font size="24.0" />
                </font>
             </Button>
             <Button fx:id="adminBackButton" layoutX="1722.0" layoutY="890.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Back">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Button>
+            <Button fx:id="adminResyncDatabaseButton" alignment="CENTER" contentDisplay="CENTER" layoutX="599.0" layoutY="890.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Resync Database" textAlignment="CENTER" wrapText="true">
                <font>
                   <Font size="24.0" />
                </font>

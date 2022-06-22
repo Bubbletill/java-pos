@@ -109,50 +109,11 @@ public class POSApplication extends Application {
                 transNo = Integer.parseInt(out);
                 System.out.println("Loaded transaction number");
 
-                // Load categories
-                requestEntity = new StringEntity(
-                        "{\"token\":\"" + accessToken + "\"}",
-                        ContentType.APPLICATION_JSON);
-
-                methodPost = new HttpPost(backendUrl + "/stock/categories");
-                methodPost.setEntity(requestEntity);
-                rawResponse = httpClient.execute(methodPost);
-                out = EntityUtils.toString(rawResponse.getEntity());
-                CategoryData[] categoryData = gson.fromJson(out, CategoryData[].class);
-                for (CategoryData c : categoryData) {
-                    categories.put(c.getId(), c.getDescription());
+                if (!syncDatabase()) { // Load categories, stock and operators
+                    Platform.runLater(() -> launchError(new Stage(), "Failed to launch POS: Database failed to sync. Please contact your system administrator."));
+                } else {
+                    Platform.runLater(this::postInit);
                 }
-                System.out.println("Loaded categories");
-
-                // Load stock
-                requestEntity = new StringEntity(
-                        "{\"token\":\"" + accessToken + "\"}",
-                        ContentType.APPLICATION_JSON);
-
-                methodPost = new HttpPost(backendUrl + "/stock/items");
-                methodPost.setEntity(requestEntity);
-                rawResponse = httpClient.execute(methodPost);
-                out = EntityUtils.toString(rawResponse.getEntity());
-                StockData[] stockData = gson.fromJson(out, StockData[].class);
-                stock.addAll(Arrays.asList(stockData));
-                System.out.println("Loaded stock");
-
-                // Load operators
-                requestEntity = new StringEntity(
-                        "{\"store\": \"" + store + "\", \"token\":\"" + accessToken + "\"}",
-                        ContentType.APPLICATION_JSON);
-
-                methodPost = new HttpPost(backendUrl + "/bo/listoperators");
-                methodPost.setEntity(requestEntity);
-                rawResponse = httpClient.execute(methodPost);
-                out = EntityUtils.toString(rawResponse.getEntity());
-                OperatorData[] operatorData = gson.fromJson(out, OperatorData[].class);
-                for (OperatorData o : operatorData) {
-                    operators.put(o.getOperatorId(), o);
-                }
-                System.out.println("Loaded operators");
-
-                Platform.runLater(this::postInit);
             } catch (Exception e) {
                 e.printStackTrace();
                 Platform.runLater(() -> launchError(new Stage(), "Failed to launch POS: " + e.getMessage()));
@@ -242,11 +203,70 @@ public class POSApplication extends Application {
         }
     }
 
+    public boolean syncDatabase() {
+        System.out.println("Syncing database");
+        try {
+            HttpClient httpClient = HttpClientBuilder.create().build();
+
+            // Load categories
+            StringEntity requestEntity = new StringEntity(
+                    "{\"token\":\"" + accessToken + "\"}",
+                    ContentType.APPLICATION_JSON);
+
+            HttpPost methodPost = new HttpPost(backendUrl + "/stock/categories");
+            methodPost.setEntity(requestEntity);
+            HttpResponse rawResponse = httpClient.execute(methodPost);
+            String out = EntityUtils.toString(rawResponse.getEntity());
+            CategoryData[] categoryData = gson.fromJson(out, CategoryData[].class);
+            for (CategoryData c : categoryData) {
+                categories.put(c.getId(), c.getDescription());
+            }
+            System.out.println("Loaded categories");
+
+            // Load stock
+            requestEntity = new StringEntity(
+                    "{\"token\":\"" + accessToken + "\"}",
+                    ContentType.APPLICATION_JSON);
+
+            methodPost = new HttpPost(backendUrl + "/stock/items");
+            methodPost.setEntity(requestEntity);
+            rawResponse = httpClient.execute(methodPost);
+            out = EntityUtils.toString(rawResponse.getEntity());
+            StockData[] stockData = gson.fromJson(out, StockData[].class);
+            stock.addAll(Arrays.asList(stockData));
+            System.out.println("Loaded stock");
+
+            // Load operators
+            requestEntity = new StringEntity(
+                    "{\"store\": \"" + store + "\", \"token\":\"" + accessToken + "\"}",
+                    ContentType.APPLICATION_JSON);
+
+            methodPost = new HttpPost(backendUrl + "/bo/listoperators");
+            methodPost.setEntity(requestEntity);
+            rawResponse = httpClient.execute(methodPost);
+            out = EntityUtils.toString(rawResponse.getEntity());
+            OperatorData[] operatorData = gson.fromJson(out, OperatorData[].class);
+            for (OperatorData o : operatorData) {
+                operators.put(o.getOperatorId(), o);
+            }
+            System.out.println("Loaded operators");
+
+            System.out.println("Sync complete");
+            return true;
+        } catch (Exception e) {
+            System.out.println("Sync fail");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
     public ApiRequestData getCategory(int number) {
         if (categories.containsKey(number))
             return new ApiRequestData(true, categories.get(number));
 
-        try {
+        return new ApiRequestData(false, "Invalid category.");
+        /* try {
             HttpClient httpClient = HttpClientBuilder.create().build();
 
             StringEntity requestEntity = new StringEntity(
@@ -261,14 +281,15 @@ public class POSApplication extends Application {
         } catch (Exception e) {
             System.out.println("Category get failed: " + e.getMessage());
             return new ApiRequestData(false, "Internal server error. Try again later.");
-        }
+        } */
     }
 
     public ApiRequestData getItem(int category, int code) {
         if (stock.stream().anyMatch(i -> i.getCategory() == category && i.getItemCode() == code))
             return new ApiRequestData(true, gson.toJson(stock.stream().filter(i -> i.getCategory() == category && i.getItemCode() == code).findFirst().get()));
 
-        try {
+        return new ApiRequestData(false, "Invalid item.");
+        /* try {
             HttpClient httpClient = HttpClientBuilder.create().build();
 
             StringEntity requestEntity = new StringEntity(
@@ -292,7 +313,7 @@ public class POSApplication extends Application {
         } catch (Exception e) {
             System.out.println("Item get failed: " + e.getMessage());
             return new ApiRequestData(false, "Internal server error. Try again later.");
-        }
+        } */
     }
 
 
