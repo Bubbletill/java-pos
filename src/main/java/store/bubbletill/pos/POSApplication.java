@@ -30,7 +30,6 @@ import store.bubbletill.pos.controllers.StartupErrorController;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 public class POSApplication extends Application {
 
@@ -334,6 +333,7 @@ public class POSApplication extends Application {
 
     public void suspendTransaction() {
         transNo--;
+        transaction.log("Transaction suspended at " + Formatters.dateTimeFormatter.format(LocalDateTime.now()));
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
 
@@ -377,31 +377,6 @@ public class POSApplication extends Application {
             }
         }*/
 
-        HttpClient httpClient = HttpClientBuilder.create().build();
-
-        String items = POSApplication.gson.toJson(transaction).replaceAll("\"", "\\\\\"");
-
-        StringEntity requestEntity = new StringEntity(
-                "{"
-                        + "\"store\": \"" + store
-                        + "\",\"date\": \"" + Formatters.dateFormatter.format(LocalDateTime.now())
-                        + "\", \"time\": \"" + Formatters.timeFormatter.format(LocalDateTime.now())
-                        + "\", \"register\": \"" + register
-                        + "\", \"oper\": \"" + operator.getOperatorId()
-                        + "\", \"trans\": \"" + transaction.getId()
-                        + "\", \"type\": \"" + transaction.determineTransType().toString()
-                        + "\", \"items\": \"" + items
-                        + "\", \"total\": \"" + Formatters.decimalFormatter.format(transaction.getBasketTotal())
-                        + "\", \"primary_method\": \"" + transaction.getPrimaryTender().toString()
-                        + "\", \"token\": \"" + accessToken
-                        + "\"}",
-                ContentType.APPLICATION_JSON);
-
-        HttpPost postMethod = new HttpPost(backendUrl + "/pos/submit");
-        postMethod.setEntity(requestEntity);
-
-        HttpResponse rawResponse = httpClient.execute(postMethod);
-
         cashInDraw -= change;
 
         if (change != 0) {
@@ -409,6 +384,7 @@ public class POSApplication extends Application {
             alert.setTitle("Change");
             alert.setHeaderText("Please give the following change:");
             alert.showAndWait();
+            transaction.log("CHANGE £" + Formatters.decimalFormatter.format(change));
         }
 
         if (transaction.determineTransType() != TransactionType.VOID) {
@@ -421,9 +397,42 @@ public class POSApplication extends Application {
             receiptQuestion.showAndWait().ifPresent(buttonType -> {
                 if (buttonType == yesButton) {
                     printReceipt(store, register, transNo, operator.getOperatorId(), Formatters.dateTimeFormatter.format(LocalDateTime.now()), POSApplication.gson.toJson(transaction), "NA", false);
+                    transaction.log("RECEIPT PRINTED");
+                } else {
+                    transaction.log("RECEIPT **DECLINED**");
                 }
             });
         }
+
+        transaction.log("Transaction " + (transaction.isVoided() ? "Voided" : "Completed") + " at " + Formatters.dateTimeFormatter.format(LocalDateTime.now()));
+
+        HttpClient httpClient = HttpClientBuilder.create().build();
+
+        String items = POSApplication.gson.toJson(transaction.getBasket()).replaceAll("\"", "\\\\\"");
+        String data = POSApplication.gson.toJson(transaction.getLogs()).replaceAll("\"", "\\\\\"");
+        String methods = POSApplication.gson.toJson(transaction.getTender()).replaceAll("\"", "\\\\\"");
+
+        StringEntity requestEntity = new StringEntity(
+                "{"
+                        + "\"store\": \"" + store
+                        + "\",\"date\": \"" + Formatters.dateFormatter.format(LocalDateTime.now())
+                        + "\", \"time\": \"" + Formatters.timeFormatter.format(LocalDateTime.now())
+                        + "\", \"register\": \"" + register
+                        + "\", \"oper\": \"" + operator.getOperatorId()
+                        + "\", \"trans\": \"" + transaction.getId()
+                        + "\", \"type\": \"" + transaction.determineTransType().toString()
+                        + "\", \"basket\": \"" + items
+                        + "\", \"data\": \"" + data
+                        + "\", \"total\": \"" + Formatters.decimalFormatter.format(transaction.getBasketTotal())
+                        + "\", \"methods\": \"" + methods
+                        + "\", \"token\": \"" + accessToken
+                        + "\"}",
+                ContentType.APPLICATION_JSON);
+
+        HttpPost postMethod = new HttpPost(backendUrl + "/pos/submit");
+        postMethod.setEntity(requestEntity);
+
+        HttpResponse rawResponse = httpClient.execute(postMethod);
 
         reset();
     }

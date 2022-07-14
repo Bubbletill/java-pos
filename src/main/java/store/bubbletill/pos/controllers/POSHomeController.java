@@ -172,6 +172,7 @@ public class POSHomeController {
 
         // Resume trans?
         if (app.transaction != null) {
+            app.transaction.log("Transaction resumed at " + Formatters.dateTimeFormatter.format(LocalDateTime.now()));
             for (StockData stockData : app.transaction.getBasket()) {
                 basketListView.getItems().add("[" + app.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()));
             }
@@ -225,6 +226,8 @@ public class POSHomeController {
         app.transNo++;
         app.transaction = new Transaction(app.transNo);
         app.transaction.setBasket(resumeData.getBasket());
+        app.transaction.setLogs(resumeData.getLogs());
+        app.transaction.log("Transaction resumed at " + Formatters.dateTimeFormatter.format(LocalDateTime.now()));
         transactionLabel.setText("" + app.transNo);
         transStartedButtons.setVisible(true);
         preTransButtons.setVisible(false);
@@ -233,6 +236,8 @@ public class POSHomeController {
         for (StockData stockData : resumeData.getBasket()) {
             basketListView.getItems().add("[" + app.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
         }
+
+
     }
 
     public void performXRead() {
@@ -282,7 +287,8 @@ public class POSHomeController {
         data.setRegOpened("NA");
         data.setRegClosed("NA");
         for (TransactionListData listItem : listData) {
-            Transaction items = POSApplication.gson.fromJson(listItem.getItems(), Transaction.class);
+            //Transaction items = POSApplication.gson.fromJson(listItem.getItems(), Transaction.class);
+            Transaction items = new Transaction(9999);
 
             if (items.isVoided()) {
                 data.incrementTransVoidTotal();

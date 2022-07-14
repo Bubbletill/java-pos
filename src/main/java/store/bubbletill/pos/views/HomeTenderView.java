@@ -12,6 +12,7 @@ import store.bubbletill.commons.*;
 import store.bubbletill.pos.POSApplication;
 import store.bubbletill.pos.controllers.POSHomeController;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 public class HomeTenderView implements BubbleView {
@@ -212,6 +213,9 @@ public class HomeTenderView implements BubbleView {
             transactionLabel.setText("" + app.transNo);
             transStartedButtons.setVisible(true);
             preTransButtons.setVisible(false);
+
+            app.transaction.log("Transaction " + app.transNo + " started " + Formatters.dateTimeFormatter.format(LocalDateTime.now()));
+            app.transaction.log("Transaction type of " + app.transaction.determineTransType());
         }
 
         app.transaction.addToBasket(stockData);
@@ -241,6 +245,7 @@ public class HomeTenderView implements BubbleView {
         transStartedButtons.setVisible(false);
         homeItemInputPane.setVisible(false);
         homeTenderRemainLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
+        app.transaction.log("Going to tender, Subtotal £" + Formatters.decimalFormatter.format(app.transaction.getBasketSubTotal()));
     }
 
     private void onReturnButtonPress() { }
@@ -321,6 +326,7 @@ public class HomeTenderView implements BubbleView {
 
     // Trans Mod
     private void onTmVoidButtonPress() {
+
         if (!app.managerLoginRequest("Transaction Void")) {
             controller.showError("Insufficient permission.");
             return;

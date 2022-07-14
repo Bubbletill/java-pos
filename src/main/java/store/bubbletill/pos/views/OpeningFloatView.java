@@ -149,6 +149,12 @@ public class OpeningFloatView implements BubbleView {
             HttpResponse rawResponse = httpClient.execute(postMethod);
             String out = EntityUtils.toString(rawResponse.getEntity());
 
+            out = out.replaceAll("\"\\[", "[");
+            out = out.replaceAll("]\"", "]");
+
+            out = out.replaceAll("\"\\{", "{");
+            out = out.replaceAll("}\"", "}");
+
             listData = POSApplication.gson.fromJson(out, TransactionListData[].class);
         } catch (Exception e) {
             e.printStackTrace();
@@ -157,14 +163,12 @@ public class OpeningFloatView implements BubbleView {
         }
 
         for (TransactionListData listItem : listData) {
-            Transaction items = POSApplication.gson.fromJson(listItem.getItems(), Transaction.class);
-
             double change = 0;
-            if (items.getTender().containsKey(PaymentType.CASH)) {
-                amount += items.getTender().get(PaymentType.CASH);
+            if (listItem.getMethods().containsKey(PaymentType.CASH)) {
+                amount += listItem.getMethods().get(PaymentType.CASH);
 
-                if (items.getTender().get(PaymentType.CASH) > items.getBasketTotal())
-                    change = items.getTender().get(PaymentType.CASH) - items.getBasketTotal();
+                if (listItem.getMethods().get(PaymentType.CASH) > listItem.getTotal())
+                    change = listItem.getMethods().get(PaymentType.CASH) - listItem.getTotal();
             }
             amount -= change;
         }
