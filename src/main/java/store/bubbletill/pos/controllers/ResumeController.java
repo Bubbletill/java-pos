@@ -1,5 +1,6 @@
-package store.bubbletill.pos.views;
+package store.bubbletill.pos.controllers;
 
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -11,25 +12,24 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import store.bubbletill.commons.*;
+import store.bubbletill.commons.SuspendedListData;
 import store.bubbletill.pos.POSApplication;
-import store.bubbletill.pos.controllers.POSHomeController;
 
-public class ResumeView implements BubbleView {
+public class ResumeController {
 
-    private final POSApplication app;
-    private final POSHomeController controller;
+    private final POSApplication app = POSApplication.getInstance();
+    private final POSContainerController controller = POSContainerController.getInstance();
 
-    private final Pane resumeTrans;
-    private final TableView<SuspendedListData> resumeTable;
+    // Resume View
+    @FXML private TableView<SuspendedListData> resumeTable;
 
-    public ResumeView(POSApplication app, POSHomeController controller, Pane resumeTrans,
-                      TableView<SuspendedListData> resumeTable, Button resumeButton, Button backButton) {
+    @FXML private Button resumeButton;
+    @FXML private Button backButton;
 
-        this.app = app;
-        this.controller = controller;
-        this.resumeTrans = resumeTrans;
-        this.resumeTable = resumeTable;
+    @FXML
+    private void initialize() {
+        System.out.println("resume init");
+        backButton.setVisible(true);
 
         resumeTable.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("date"));
         resumeTable.getColumns().get(1).setCellValueFactory(new PropertyValueFactory<>("reg"));
@@ -38,11 +38,7 @@ public class ResumeView implements BubbleView {
 
         resumeButton.setOnAction(e -> { onResumePress(); });
         backButton.setOnAction(e -> { onBackPress(); });
-    }
 
-    @Override
-    public void show() {
-        resumeTrans.setVisible(true);
         resumeTable.getItems().clear();
 
         try {
@@ -69,15 +65,8 @@ public class ResumeView implements BubbleView {
         }
     }
 
-    @Override
-    public void hide() {
-        resumeTrans.setVisible(false);
-    }
-
     private void onBackPress() {
-        resumeTrans.setVisible(false);
-        controller.homeTenderView.show();
-        controller.showError(null);
+        controller.updateSubScene("mainmenu");
     }
 
     private void onResumePress() {
@@ -88,4 +77,5 @@ public class ResumeView implements BubbleView {
         }
         controller.resumeTransaction(resumeTable.getSelectionModel().getSelectedItem().getUsid());
     }
+
 }

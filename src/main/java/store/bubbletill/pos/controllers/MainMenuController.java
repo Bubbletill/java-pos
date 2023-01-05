@@ -1,5 +1,6 @@
-package store.bubbletill.pos.views;
+package store.bubbletill.pos.controllers;
 
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -10,66 +11,57 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import store.bubbletill.commons.*;
 import store.bubbletill.pos.POSApplication;
-import store.bubbletill.pos.controllers.POSHomeController;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 
-public class HomeTenderView implements BubbleView {
+public class MainMenuController {
 
-    private final POSApplication app;
-    private final POSHomeController controller;
+    private final POSApplication app = POSApplication.getInstance();
+    private final POSContainerController controller = POSContainerController.getInstance();
 
-     private final Pane mainHome;
-     private final Pane preTransButtons;
-     private final Pane transStartedButtons;
-     private final Pane tenderButtons;
-     private final Pane transModButtons;
-     private final Label categoryInputLabel;
-     private final TextField categoryInputField;
-     private final TextField itemcodeInputField;
-     private final Pane homeItemInputPane;
-     private final ListView<String> basketListView;
+    @FXML
+    private Pane mainHome;
+    @FXML private Pane preTransButtons;
+    @FXML private Pane transStartedButtons;
+    @FXML private Pane tenderButtons;
+    @FXML private Pane transModButtons;
+    @FXML private Label categoryInputLabel;
+    @FXML private TextField categoryInputField;
+    @FXML private TextField itemcodeInputField;
+    @FXML private Pane homeItemInputPane;
+    @FXML private ListView<String> basketListView;
 
-     private final Pane homeCostsPane;
-     private final Pane homeCostsTenderPane;
-     private final Label homeTenderTotalLabel;
-     private final Label homeTenderTenderLabel;
-     private final Label homeTenderRemainLabel;
+    @FXML private Pane homeCostsPane;
+    @FXML private Pane homeCostsTenderPane;
+    @FXML private Label homeTenderTotalLabel;
+    @FXML private Label homeTenderTenderLabel;
+    @FXML private Label homeTenderRemainLabel;
 
-     private final Button tenderBackButton;
+    @FXML private Button tenderButton;
+    @FXML private Button tenderCashButton;
+    @FXML private Button tenderCardButton;
+    @FXML private Button tenderBackButton;
+    @FXML private Button itemModButton;
+    @FXML private Button transModButton;
+    @FXML private Button suspendButton;
+    @FXML private Button transModVoidButton;
+    @FXML private Button transModBackButton;
+    @FXML private Button logoutButton;
+    @FXML private Button adminButton;
 
-     private final Label transactionLabel;
+    @FXML private Button homeResumeButton;
 
-    public HomeTenderView(POSApplication app, POSHomeController controller, Label transactionLabel,
-                          Pane mainHome, Pane preTransButtons, Pane transStartedButtons, Pane tenderButtons,
-                          Pane transModButtons, Label categoryInputLabel, TextField categoryInputField,
-                          TextField itemcodeInputField, Pane homeItemInputPane, ListView<String> basketListView,
-                          Pane homeCostsPane, Pane homeCostsTenderPane, Label homeTenderTotalLabel,
-                          Label homeTenderTenderLabel, Label homeTenderRemainLabel, Button tenderCashButton,
-                          Button tenderCardButton, Button tenderBackButton, Button tenderButton, Button itemModButton,
-                          Button transModButton, Button suspendButton, Button transModVoidButton,
-                          Button transModBackButton, Button logoutButton, Button homeResumeButton, Button adminButton) {
-
-        this.app = app;
-        this.controller = controller;
-        this.mainHome = mainHome;
-        this.preTransButtons = preTransButtons;
-        this.transStartedButtons = transStartedButtons;
-        this.tenderButtons = tenderButtons;
-        this.transModButtons = transModButtons;
-        this.categoryInputLabel = categoryInputLabel;
-        this.categoryInputField = categoryInputField;
-        this.itemcodeInputField = itemcodeInputField;
-        this.homeItemInputPane = homeItemInputPane;
-        this.basketListView = basketListView;
-        this.homeCostsPane = homeCostsPane;
-        this.homeCostsTenderPane = homeCostsTenderPane;
-        this.homeTenderTotalLabel = homeTenderTotalLabel;
-        this.homeTenderTenderLabel = homeTenderTenderLabel;
-        this.homeTenderRemainLabel = homeTenderRemainLabel;
-        this.tenderBackButton = tenderBackButton;
-        this.transactionLabel = transactionLabel;
+    @FXML
+    private void initialize() {
+        System.out.println("Main menu initalized");
+        mainHome.setVisible(true);
+        preTransButtons.setVisible(true);
+        transStartedButtons.setVisible(false);
+        tenderButtons.setVisible(false);
+        transModButtons.setVisible(false);
+        homeCostsPane.setVisible(true);
+        homeCostsTenderPane.setVisible(false);
 
         basketListView.setCellFactory(cell -> new ListCell<>() {
             @Override
@@ -104,28 +96,18 @@ public class HomeTenderView implements BubbleView {
         logoutButton.setOnAction(e -> { onLogoutButtonPress(); });
 
         adminButton.setOnAction(e -> { onAdminButtonPress(); });
-    }
 
-    @Override
-    public void show() {
-        mainHome.setVisible(true);
-        preTransButtons.setVisible(true);
-        transStartedButtons.setVisible(false);
-        tenderButtons.setVisible(false);
-        transModButtons.setVisible(false);
-        homeCostsPane.setVisible(true);
-        homeCostsTenderPane.setVisible(false);
-    }
+        // Resume trans?
+        if (app.transaction != null) {
+            app.transaction.log("Transaction resumed at " + Formatters.dateTimeFormatter.format(LocalDateTime.now()));
+            for (StockData stockData : app.transaction.getBasket()) {
+                basketListView.getItems().add("[" + app.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()));
+            }
+            homeTenderTotalLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
 
-    @Override
-    public void hide() {
-        mainHome.setVisible(false);
-        preTransButtons.setVisible(false);
-        transStartedButtons.setVisible(false);
-        tenderButtons.setVisible(false);
-        transModButtons.setVisible(false);
-        homeCostsPane.setVisible(false);
-        homeCostsTenderPane.setVisible(false);
+            transStartedButtons.setVisible(true);
+            preTransButtons.setVisible(false);
+        }
     }
 
     private void onLogoutButtonPress() {
@@ -210,7 +192,7 @@ public class HomeTenderView implements BubbleView {
         if (app.transaction == null) {
             app.transNo++;
             app.transaction = new Transaction(app.transNo);
-            transactionLabel.setText("" + app.transNo);
+            controller.transactionLabel.setText("" + app.transNo);
             transStartedButtons.setVisible(true);
             preTransButtons.setVisible(false);
 
@@ -235,8 +217,7 @@ public class HomeTenderView implements BubbleView {
     }
 
     private void onAdminButtonPress() {
-        hide();
-        controller.adminView.show();
+        controller.updateSubScene("admin");
     }
 
     private void onTenderButtonPress() {
@@ -257,7 +238,9 @@ public class HomeTenderView implements BubbleView {
         transStartedButtons.setVisible(false);
     }
 
-    private void onResumeButtonPress() { controller.resumeView.show(); hide(); }
+    private void onResumeButtonPress() {
+        controller.updateSubScene("resume");
+    }
 
     private void onSuspendButtonPress() {
         app.suspendTransaction();
@@ -332,13 +315,24 @@ public class HomeTenderView implements BubbleView {
             return;
         }
 
-        app.transaction.setVoided(true);
-        try {
-            app.submit();
-        } catch (Exception e) {
-            e.printStackTrace();
-            controller.showError(e.getMessage());
-        }
+        Alert receiptQuestion = new Alert(Alert.AlertType.WARNING);
+        POSApplication.buzzer("double");
+        receiptQuestion.setTitle("Confirm");
+        receiptQuestion.setHeaderText("Are you sure you want to void this transaction?");
+        receiptQuestion.setContentText("Please select an option.");
+        ButtonType yesButton = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+        receiptQuestion.getButtonTypes().setAll(yesButton, new ButtonType("No", ButtonBar.ButtonData.NO));
+        receiptQuestion.showAndWait().ifPresent(buttonType -> {
+            if (buttonType == yesButton) {
+                app.transaction.setVoided(true);
+                try {
+                    app.submit();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    controller.showError(e.getMessage());
+                }
+            }
+        });
     }
 
     private void onTmBackButtonPress() {

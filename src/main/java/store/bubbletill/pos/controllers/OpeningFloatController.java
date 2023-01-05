@@ -1,5 +1,6 @@
-package store.bubbletill.pos.views;
+package store.bubbletill.pos.controllers;
 
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
@@ -10,79 +11,53 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import store.bubbletill.commons.*;
+import store.bubbletill.commons.Formatters;
+import store.bubbletill.commons.PaymentType;
+import store.bubbletill.commons.TransactionListData;
 import store.bubbletill.pos.POSApplication;
-import store.bubbletill.pos.controllers.POSHomeController;
 
 import java.time.LocalDateTime;
 
-public class OpeningFloatView implements BubbleView {
+public class OpeningFloatController {
 
-    private final POSApplication app;
-    private final POSHomeController controller;
+    private final POSApplication app = POSApplication.getInstance();
+    private final POSContainerController controller = POSContainerController.getInstance();
 
-     private final Pane declareOpeningFloat;
-     private final Pane dofPrompt;
-     private final Pane dofDeclare;
-     private final TextField dof50;
-     private final TextField dof20;
-     private final TextField dof10;
-     private final TextField dof5;
-     private final TextField dof1;
-     private final TextField dof50p;
-     private final TextField dof20p;
-     private final TextField dof10p;
-     private final TextField dof5p;
-     private final TextField dof2p;
-     private final TextField dof1p;
-    
-    public OpeningFloatView(POSApplication app, POSHomeController controller, Pane declareOpeningFloat, Pane dofPrompt,
-                            Pane dofDeclare, TextField dof50, TextField dof20, TextField dof10, TextField dof5,
-                            TextField dof1, TextField dof50p, TextField dof20p, TextField dof10p, TextField dof5p,
-                            TextField dof2p, TextField dof1p, Button openingFloatYesButton, Button openingFloatNoButton,
-                            Button openingFloatSubmitButton) {
+    @FXML private Pane declareOpeningFloat;
+    @FXML private Pane dofPrompt;
+    @FXML private Pane dofDeclare;
+    @FXML private TextField dof50;
+    @FXML private TextField dof20;
+    @FXML private TextField dof10;
+    @FXML private TextField dof5;
+    @FXML private TextField dof1;
+    @FXML private TextField dof50p;
+    @FXML private TextField dof20p;
+    @FXML private TextField dof10p;
+    @FXML private TextField dof5p;
+    @FXML private TextField dof2p;
+    @FXML private TextField dof1p;
 
-        this.app = app;
-        this.controller = controller;
-        this.declareOpeningFloat = declareOpeningFloat;
-        this.dofPrompt = dofPrompt;
-        this.dofDeclare = dofDeclare;
-        this.dof50 = dof50;
-        this.dof20 = dof20;
-        this.dof10 = dof10;
-        this.dof5 = dof5;
-        this.dof1 = dof1;
-        this.dof50p = dof50p;
-        this.dof20p = dof20p;
-        this.dof10p = dof10p;
-        this.dof5p = dof5p;
-        this.dof2p = dof2p;
-        this.dof1p = dof1p;
+    @FXML private Button openingFloatYesButton;
+    @FXML private Button openingFloatNoButton;
+    @FXML private Button openingFloatSubmitButton;
 
+    @FXML
+    public void initialize() {
+        System.out.println("OF init");
+        declareOpeningFloat.setVisible(true);
         openingFloatYesButton.setOnAction(e -> { onYes(); });
         openingFloatNoButton.setOnAction(e -> { onNo(); });
         openingFloatSubmitButton.setOnAction(e -> { onSubmit(); });
-    }
 
-    @Override
-    public void show() {
-        declareOpeningFloat.setVisible(true);
         dofPrompt.setVisible(true);
         dofDeclare.setVisible(false);
     }
 
-    @Override
-    public void hide() {
-        declareOpeningFloat.setVisible(false);
-        dofPrompt.setVisible(false);
-        dofDeclare.setVisible(false);
-    }
-
     private void onNo() {
-        hide();
         controller.showError(null);
-        controller.homeTenderView.show();
         app.cashInDraw = getDBExpectCashInDraw();
+        controller.updateSubScene("mainmenu");
     }
 
 
@@ -116,9 +91,8 @@ public class OpeningFloatView implements BubbleView {
         }
 
         controller.showError(null);
-        controller.homeTenderView.show();
         app.floatKnown = true;
-        hide();
+        controller.updateSubScene("mainmenu");
     }
 
     private double getDBExpectCashInDraw() {

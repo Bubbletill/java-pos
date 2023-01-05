@@ -87,7 +87,7 @@ public class LoginController {
                 app.operators.put(app.operator.getOperatorId(), app.operator);
             }
 
-            FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("poshome.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("poscontainer.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);
             Stage stage = (Stage) userIdForm.getScene().getWindow();
             stage.setScene(scene);

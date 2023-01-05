@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="containerAnchor" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="store.bubbletill.pos.controllers.POSContainerController">
+   <children>
+      <Pane prefHeight="70.0" prefWidth="1920.0" style="-fx-background-color: #abdfff;">
+         <children>
+            <Label layoutX="1246.0" layoutY="18.0" prefHeight="35.0" prefWidth="124.0" text="Register#">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <Label fx:id="registerLabel" layoutX="1359.0" layoutY="22.0" text="11">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <Label fx:id="dateTimeLabel" layoutX="950.0" layoutY="22.0" text="11/11/11 11:11">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <Label fx:id="statusLabel" layoutX="1132.0" layoutY="22.0" text="Online">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <Label layoutX="1445.0" layoutY="18.0" prefHeight="35.0" prefWidth="148.0" text="Transaction#">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <Label fx:id="transactionLabel" layoutX="1593.0" layoutY="22.0" text="1111">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <Label layoutX="1682.0" layoutY="18.0" prefHeight="35.0" prefWidth="124.0" text="Operator#">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <Label fx:id="operatorLabel" layoutX="1806.0" layoutY="22.0" text="1111">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <ImageView fitHeight="70.0" fitWidth="69.0" layoutX="14.0" layoutY="3.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@logo-short.png" />
+               </image>
+            </ImageView>
+            <Pane fx:id="errorPane" layoutX="100.0" layoutY="10.0" prefHeight="52.0" prefWidth="828.0" style="-fx-background-color: #b80000;">
+               <children>
+                  <Label fx:id="errorLabel" layoutX="6.0" layoutY="-3.0" text="Error" textFill="WHITE" wrapText="true">
+                     <font>
+                        <Font size="23.0" />
+                     </font>
+                  </Label>
+               </children>
+            </Pane>
+         </children>
+      </Pane>
+   </children>
+</AnchorPane>

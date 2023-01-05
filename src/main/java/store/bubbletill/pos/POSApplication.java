@@ -36,7 +36,7 @@ public class POSApplication extends Application {
     public static POSApplication instance;
 
     public static Gson gson = new Gson();
-    private Stage stage;
+    public Stage stage;
     public Timer dateTimeTimer;
 
     // General Data
@@ -265,22 +265,6 @@ public class POSApplication extends Application {
             return new ApiRequestData(true, categories.get(number));
 
         return new ApiRequestData(false, "Invalid category.");
-        /* try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
-
-            StringEntity requestEntity = new StringEntity(
-                    "{\"category\":\"" + number + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
-                    ContentType.APPLICATION_JSON);
-
-            HttpPost postMethod = new HttpPost(backendUrl + "/stock/category");
-            postMethod.setEntity(requestEntity);
-
-            HttpResponse rawResponse = httpClient.execute(postMethod);
-            return POSApplication.gson.fromJson(EntityUtils.toString(rawResponse.getEntity()), ApiRequestData.class);
-        } catch (Exception e) {
-            System.out.println("Category get failed: " + e.getMessage());
-            return new ApiRequestData(false, "Internal server error. Try again later.");
-        } */
     }
 
     public ApiRequestData getItem(int category, int code) {
@@ -288,38 +272,13 @@ public class POSApplication extends Application {
             return new ApiRequestData(true, gson.toJson(stock.stream().filter(i -> i.getCategory() == category && i.getItemCode() == code).findFirst().get()));
 
         return new ApiRequestData(false, "Invalid item.");
-        /* try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
-
-            StringEntity requestEntity = new StringEntity(
-                    "{\"category\":\"" + category + "\",\"code\":\"" + code + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
-                    ContentType.APPLICATION_JSON);
-
-            HttpPost postMethod = new HttpPost(backendUrl + "/stock/item");
-            postMethod.setEntity(requestEntity);
-
-            HttpResponse rawResponse = httpClient.execute(postMethod);
-            String out = EntityUtils.toString(rawResponse.getEntity());
-            ApiRequestData data = POSApplication.gson.fromJson(out, ApiRequestData.class);
-            if (!data.isSuccess()) {
-                return data;
-            }
-
-            StockData stockData = POSApplication.gson.fromJson(out, StockData.class);
-            stock.add(stockData);
-
-            return new ApiRequestData(true, out);
-        } catch (Exception e) {
-            System.out.println("Item get failed: " + e.getMessage());
-            return new ApiRequestData(false, "Internal server error. Try again later.");
-        } */
     }
 
 
     public void reset() {
         transaction = null;
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("poshome.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("poscontainer.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);
             stage.setScene(scene);
             stage.setTitle("Bubbletill POS 22.0.1");

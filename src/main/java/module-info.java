@@ -16,6 +16,5 @@ module store.bubbletill.pos {
     opens store.bubbletill.pos.controllers to javafx.fxml;
     exports store.bubbletill.pos;
     exports store.bubbletill.pos.controllers;
-    exports store.bubbletill.pos.views;
     exports store.bubbletill.pos.exceptions;
 }

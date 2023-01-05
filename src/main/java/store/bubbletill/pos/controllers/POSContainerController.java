@@ -3,13 +3,14 @@ package store.bubbletill.pos.controllers;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Group;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.SubScene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.text.Font;
+import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -20,136 +21,43 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import store.bubbletill.pos.POSApplication;
 import store.bubbletill.commons.*;
-import store.bubbletill.pos.views.AdminView;
-import store.bubbletill.pos.views.HomeTenderView;
-import store.bubbletill.pos.views.OpeningFloatView;
-import store.bubbletill.pos.views.ResumeView;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class POSHomeController {
+public class POSContainerController {
 
-    // Home Tender View
-    @FXML private Pane mainHome;
-    @FXML private Pane preTransButtons;
-    @FXML private Pane transStartedButtons;
-    @FXML private Pane tenderButtons;
-    @FXML private Pane transModButtons;
-    @FXML private Label categoryInputLabel;
-    @FXML private TextField categoryInputField;
-    @FXML private TextField itemcodeInputField;
-    @FXML private Pane homeItemInputPane;
-    @FXML private ListView<String> basketListView;
-
-    @FXML private Pane homeCostsPane;
-    @FXML private Pane homeCostsTenderPane;
-    @FXML private Label homeTenderTotalLabel;
-    @FXML private Label homeTenderTenderLabel;
-    @FXML private Label homeTenderRemainLabel;
-
-    @FXML private Button tenderButton;
-    @FXML private Button tenderCashButton;
-    @FXML private Button tenderCardButton;
-    @FXML private Button tenderBackButton;
-    @FXML private Button itemModButton;
-    @FXML private Button transModButton;
-    @FXML private Button suspendButton;
-    @FXML private Button transModVoidButton;
-    @FXML private Button transModBackButton;
-    @FXML private Button logoutButton;
-    @FXML private Button adminButton;
-
-    // Resume View
-    @FXML private Pane resumeTrans;
-    @FXML private TableView<SuspendedListData> resumeTable;
-
-    @FXML private Button homeResumeButton;
-    @FXML private Button rtResumeButton;
-    @FXML private Button rtBackButton;
-
-    // Opening float view
-    @FXML private Pane declareOpeningFloat;
-    @FXML private Pane dofPrompt;
-    @FXML private Pane dofDeclare;
-    @FXML private TextField dof50;
-    @FXML private TextField dof20;
-    @FXML private TextField dof10;
-    @FXML private TextField dof5;
-    @FXML private TextField dof1;
-    @FXML private TextField dof50p;
-    @FXML private TextField dof20p;
-    @FXML private TextField dof10p;
-    @FXML private TextField dof5p;
-    @FXML private TextField dof2p;
-    @FXML private TextField dof1p;
-
-    @FXML private Button openingFloatYesButton;
-    @FXML private Button openingFloatNoButton;
-    @FXML private Button openingFloatSubmitButton;
-
-    // Admin View
-    @FXML private Pane adminPane;
-    @FXML private Button adminNoSaleButton;
-    @FXML private Button adminPostVoidButton;
-    @FXML private Button adminXReadButton;
-    @FXML private Button adminResyncDatabaseButton;
-    @FXML private Button adminBackButton;
+    @FXML private SubScene posSubScene;
+    @FXML private AnchorPane containerAnchor;
 
     // Top status bar
     @FXML private Label dateTimeLabel;
     @FXML private Label statusLabel;
     @FXML private Label registerLabel;
-    @FXML private Label transactionLabel;
+    @FXML public Label transactionLabel;
     @FXML private Label operatorLabel;
     @FXML private Pane errorPane;
     @FXML private Label errorLabel;
 
-    // Views
-    public HomeTenderView homeTenderView;
-    public OpeningFloatView openingFloatView;
-    public ResumeView resumeView;
-    public AdminView adminView;
-
     private POSApplication app;
+
+    private static POSContainerController instance;
 
     @FXML
     private void initialize() {
         app = POSApplication.getInstance();
-
-        // Set up the views!
-        homeTenderView = new HomeTenderView(app, this, transactionLabel, mainHome, preTransButtons,
-                transStartedButtons, tenderButtons, transModButtons, categoryInputLabel, categoryInputField,
-                itemcodeInputField, homeItemInputPane, basketListView, homeCostsPane, homeCostsTenderPane,
-                homeTenderTotalLabel, homeTenderTenderLabel, homeTenderRemainLabel, tenderCashButton, tenderCardButton,
-                tenderBackButton, tenderButton, itemModButton, transModButton, suspendButton, transModVoidButton,
-                transModBackButton, logoutButton, homeResumeButton, adminButton);
-
-        openingFloatView = new OpeningFloatView(app, this, declareOpeningFloat, dofPrompt, dofDeclare, dof50,
-                dof20, dof10, dof5, dof1, dof50p, dof20p, dof10p, dof5p, dof2p, dof1p, openingFloatYesButton,
-                openingFloatNoButton, openingFloatSubmitButton);
-
-        resumeView = new ResumeView(app, this, resumeTrans, resumeTable, rtResumeButton, rtBackButton);
-
-        adminView = new AdminView(app, this, adminPane, adminNoSaleButton, adminPostVoidButton,
-                adminXReadButton, adminResyncDatabaseButton, adminBackButton);
+        instance = this;
 
         if (app.cashInDraw == -9999) {
-            homeTenderView.hide();
-            openingFloatView.show();
+            updateSubScene("openingfloat");
             POSApplication.buzzer("double");
         } else {
-            homeTenderView.show();
-            openingFloatView.hide();
+            updateSubScene("mainmenu");
         }
 
-        resumeView.hide();
-        adminView.hide();
-
         errorPane.setVisible(false);
-
 
         if (app.dateTimeTimer != null)
             app.dateTimeTimer.cancel();
@@ -168,15 +76,25 @@ public class POSHomeController {
         registerLabel.setText("" + app.register);
         transactionLabel.setText("" + app.transNo);
         operatorLabel.setText(app.operator.getOperatorId());
+    }
 
+    public static POSContainerController getInstance() {
+        return instance;
+    }
 
-        // Resume trans?
-        if (app.transaction != null) {
-            app.transaction.log("Transaction resumed at " + Formatters.dateTimeFormatter.format(LocalDateTime.now()));
-            for (StockData stockData : app.transaction.getBasket()) {
-                basketListView.getItems().add("[" + app.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()));
-            }
-            homeTenderTotalLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
+    public void updateSubScene(String fxml) {
+        try {
+            if (posSubScene != null)
+                containerAnchor.getChildren().remove(posSubScene);
+
+            FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource(fxml + ".fxml"));
+            posSubScene = new SubScene(fxmlLoader.load(), 1920, 1010);
+            posSubScene.relocate(0, 70);
+            posSubScene.setVisible(true);
+            containerAnchor.getChildren().add(posSubScene);
+        } catch (Exception e) {
+            showError("Failed to load sub-scene: " + e.getLocalizedMessage());
+            e.printStackTrace();
         }
     }
 
@@ -221,23 +139,13 @@ public class POSHomeController {
             return;
         }
 
-        resumeTrans.setVisible(false);
-        mainHome.setVisible(true);
         app.transNo++;
         app.transaction = new Transaction(app.transNo);
         app.transaction.setBasket(resumeData.getBasket());
         app.transaction.setLogs(resumeData.getLogs());
         app.transaction.log("Transaction resumed at " + Formatters.dateTimeFormatter.format(LocalDateTime.now()));
         transactionLabel.setText("" + app.transNo);
-        transStartedButtons.setVisible(true);
-        preTransButtons.setVisible(false);
-        homeTenderTotalLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
-
-        for (StockData stockData : resumeData.getBasket()) {
-            basketListView.getItems().add("[" + app.getCategory(stockData.getCategory()).getMessage() + "] " + stockData.getDescription() + " - £" + Formatters.decimalFormatter.format(stockData.getPrice()) + "\n" + stockData.getCategory() + " / " + stockData.getItemCode());
-        }
-
-
+        updateSubScene("mainmenu");
     }
 
     public void performXRead() {
