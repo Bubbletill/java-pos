@@ -162,9 +162,10 @@ public class POSApplication extends Application {
             Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);
             primaryStage.setTitle("Bubbletill POS 22.0.1");
             primaryStage.setScene(scene);
-            primaryStage.setFullScreen(true);
-            primaryStage.setFullScreenExitHint("");
+            primaryStage.initStyle(StageStyle.UNDECORATED);
             primaryStage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
+            primaryStage.setX(0);
+            primaryStage.setY(0);
             primaryStage.show();
         } catch (Exception e) {
             e.printStackTrace();
@@ -281,10 +282,6 @@ public class POSApplication extends Application {
             FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("poscontainer.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);
             stage.setScene(scene);
-            stage.setTitle("Bubbletill POS 22.0.1");
-            stage.setFullScreen(true);
-            stage.setFullScreenExitHint("");
-            stage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
         } catch (Exception e) {
             e.printStackTrace();
         }

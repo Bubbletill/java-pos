@@ -4,7 +4,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
@@ -116,11 +115,7 @@ public class MainMenuController {
             FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("login.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);
             Stage stage = controller.getStage();
-            stage.setTitle("Bubbletill POS 22.0.1");
             stage.setScene(scene);
-            stage.setFullScreen(true);
-            stage.setFullScreenExitHint("");
-            stage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
         } catch (Exception e) {
             e.printStackTrace();
         }
