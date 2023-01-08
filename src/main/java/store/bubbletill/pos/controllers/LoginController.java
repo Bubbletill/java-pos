@@ -115,7 +115,7 @@ public class LoginController {
     @FXML
     private void onBackOfficeButtonPress() {
         try {
-            Runtime.getRuntime().exec("javaw -jar " + app.localData.getBackoffice());
+            Runtime.getRuntime().exec("javaw -jar C:\\bubbletill\\bo.jar");
         } catch (Exception e) {
             showError("BO failed: " + e.getMessage());
             e.printStackTrace();
