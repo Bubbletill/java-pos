@@ -73,7 +73,7 @@ public class POSContainerController {
         }, 0, 5000);
 
         statusLabel.setText((app.workingOnline ? "Online" : "Offline"));
-        registerLabel.setText("" + app.register);
+        registerLabel.setText("" + app.localData.getReg());
         transactionLabel.setText("" + app.transNo);
         operatorLabel.setText(app.operator.getOperatorId());
     }
@@ -124,10 +124,10 @@ public class POSContainerController {
             HttpClient httpClient = HttpClientBuilder.create().build();
 
             StringEntity requestEntity = new StringEntity(
-                    "{\"usid\":\"" + uniqueSuspendedId + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
+                    "{\"usid\":\"" + uniqueSuspendedId + "\", \"token\":\"" + app.localData.getToken() + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost(POSApplication.backendUrl + "/pos/resume");
+            HttpPost postMethod = new HttpPost(app.localData.getBackend() + "/pos/resume");
             postMethod.setEntity(requestEntity);
 
             HttpResponse rawResponse = httpClient.execute(postMethod);
@@ -157,20 +157,20 @@ public class POSContainerController {
             String todaysDate = Formatters.dateFormatter.format(LocalDateTime.now());
             StringEntity requestEntity = new StringEntity(
                     "{"
-                            + "\"store\": \"" + app.store
+                            + "\"store\": \"" + app.localData.getStore()
                             + "\", \"startDate\": \"" + todaysDate
                             + "\", \"endDate\": \"" + todaysDate
                             + "\", \"startTime\": \"" + "00:00"
                             + "\", \"endTime\": \"" + "23:59"
-                            + "\", \"register\": \"" + app.register
+                            + "\", \"register\": \"" + app.localData.getReg()
                             + "\", \"operator\": \"" + ""
                             + "\", \"startTotal\": \"" + Double.MIN_VALUE
                             + "\", \"endTotal\": \"" + Double.MAX_VALUE
-                            + "\", \"token\" :\"" + app.accessToken
+                            + "\", \"token\" :\"" + app.localData.getToken()
                             + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost(POSApplication.backendUrl + "/bo/listtransactions");
+            HttpPost postMethod = new HttpPost(app.localData.getBackend() + "/bo/listtransactions");
             postMethod.setEntity(requestEntity);
 
             HttpResponse rawResponse = httpClient.execute(postMethod);
@@ -188,7 +188,7 @@ public class POSContainerController {
             return;
         }
 
-        XReadData data = new XReadData(app.store, app.register, app.operator.getOperatorId());
+        XReadData data = new XReadData(app.localData.getStore(), app.localData.getReg(), app.operator.getOperatorId());
 
         data.setTransactionCount(listData.length);
         data.setSystemCashInDraw(app.cashInDraw);

@@ -104,20 +104,20 @@ public class OpeningFloatController {
             String todaysDate = Formatters.dateFormatter.format(LocalDateTime.now());
             StringEntity requestEntity = new StringEntity(
                     "{"
-                            + "\"store\": \"" + app.store
+                            + "\"store\": \"" + app.localData.getStore()
                             + "\", \"startDate\": \"" + todaysDate
                             + "\", \"endDate\": \"" + todaysDate
                             + "\", \"startTime\": \"" + "00:00"
                             + "\", \"endTime\": \"" + "23:59"
-                            + "\", \"register\": \"" + app.register
+                            + "\", \"register\": \"" + app.localData.getReg()
                             + "\", \"operator\": \"" + ""
                             + "\", \"startTotal\": \"" + Double.MIN_VALUE
                             + "\", \"endTotal\": \"" + Double.MAX_VALUE
-                            + "\", \"token\" :\"" + app.accessToken
+                            + "\", \"token\" :\"" + app.localData.getToken()
                             + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost(POSApplication.backendUrl + "/bo/listtransactions");
+            HttpPost postMethod = new HttpPost(app.localData.getBackend() + "/bo/listtransactions");
             postMethod.setEntity(requestEntity);
 
             HttpResponse rawResponse = httpClient.execute(postMethod);

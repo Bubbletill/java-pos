@@ -67,10 +67,10 @@ public class LoginController {
                 HttpClient httpClient = HttpClientBuilder.create().build();
 
                 StringEntity requestEntity = new StringEntity(
-                        "{\"user\":\"" + userIdForm.getText() + "\",\"password\":\"" + passwordForm.getText() + "\", \"token\":\"" + app.accessToken + "\"}",
+                        "{\"user\":\"" + userIdForm.getText() + "\",\"password\":\"" + passwordForm.getText() + "\", \"token\":\"" + app.localData.getToken() + "\"}",
                         ContentType.APPLICATION_JSON);
 
-                HttpPost postMethod = new HttpPost(POSApplication.backendUrl + "/pos/login");
+                HttpPost postMethod = new HttpPost(app.localData.getBackend() + "/pos/login");
                 postMethod.setEntity(requestEntity);
 
                 HttpResponse rawResponse = httpClient.execute(postMethod);
@@ -115,11 +115,10 @@ public class LoginController {
     @FXML
     private void onBackOfficeButtonPress() {
         try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
-            HttpGet method = new HttpGet("http://localhost:5001/launch/backoffice");
-            httpClient.execute(method);
+            Runtime.getRuntime().exec("javaw -jar " + app.localData.getBackoffice());
         } catch (Exception e) {
-            System.out.println("BO failed: " + e.getMessage());
+            showError("BO failed: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

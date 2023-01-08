@@ -45,10 +45,10 @@ public class ResumeController {
             HttpClient httpClient = HttpClientBuilder.create().build();
 
             StringEntity requestEntity = new StringEntity(
-                    "{\"store\":\"" + app.store + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
+                    "{\"store\":\"" + app.localData.getStore() + "\", \"token\":\"" + app.localData.getToken() + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost(POSApplication.backendUrl + "/pos/listsuspended");
+            HttpPost postMethod = new HttpPost(app.localData.getBackend() + "/pos/listsuspended");
             postMethod.setEntity(requestEntity);
 
             HttpResponse rawResponse = httpClient.execute(postMethod);

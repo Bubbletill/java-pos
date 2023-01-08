@@ -28,12 +28,15 @@ import store.bubbletill.commons.*;
 import store.bubbletill.pos.controllers.StartupErrorController;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 
 public class POSApplication extends Application {
 
-    public static POSApplication instance;
+    private static POSApplication instance;
 
     public static Gson gson = new Gson();
     public Stage stage;
@@ -42,11 +45,8 @@ public class POSApplication extends Application {
     // General Data
     public OperatorData operator;
     public boolean workingOnline = true;
-    public int store;
-    public int register;
     public int transNo = 0;
-    public String accessToken;
-    public static String backendUrl;
+    public LocalData localData;
 
     public Transaction transaction;
 
@@ -67,44 +67,20 @@ public class POSApplication extends Application {
         new Thread(() -> {
             // Load register specific info
             try {
-                // Reg number
+                Reader dataReader = Files.newBufferedReader(Paths.get("C:\\bubbletill\\data.json"));
+                localData = gson.fromJson(dataReader, LocalData.class);
+
+                // Load trans number
                 HttpClient httpClient = HttpClientBuilder.create().build();
-                HttpGet method = new HttpGet("http://localhost:5001/info/regno");
-                HttpResponse rawResponse = httpClient.execute(method);
-                String out = EntityUtils.toString(rawResponse.getEntity());
-                register = Integer.parseInt(out);
-                System.out.println("Loaded regno");
 
-                // Store number
-                method = new HttpGet("http://localhost:5001/info/storeno");
-                rawResponse = httpClient.execute(method);
-                out = EntityUtils.toString(rawResponse.getEntity());
-                store = Integer.parseInt(out);
-                System.out.println("Loaded storeno");
-
-                // Access token
-                method = new HttpGet("http://localhost:5001/info/accesstoken");
-                rawResponse = httpClient.execute(method);
-                out = EntityUtils.toString(rawResponse.getEntity());
-                accessToken = out;
-                System.out.println("Loaded access token");
-
-                // Backend url
-                method = new HttpGet("http://localhost:5001/info/backend");
-                rawResponse = httpClient.execute(method);
-                out = EntityUtils.toString(rawResponse.getEntity());
-                backendUrl = out;
-                System.out.println("Loaded backend url " + out);
-
-                // Transaction number
                 StringEntity requestEntity = new StringEntity(
-                        "{\"store\":\"" + store + "\",\"reg\":\"" + register + "\", \"token\":\"" + accessToken + "\"}",
+                        "{\"store\":\"" + localData.getStore() + "\",\"reg\":\"" + localData.getReg() + "\", \"token\":\"" + localData.getToken() + "\"}",
                         ContentType.APPLICATION_JSON);
 
-                HttpPost methodPost = new HttpPost(backendUrl + "/pos/today");
+                HttpPost methodPost = new HttpPost(localData.getBackend() + "/pos/today");
                 methodPost.setEntity(requestEntity);
-                rawResponse = httpClient.execute(methodPost);
-                out = EntityUtils.toString(rawResponse.getEntity());
+                HttpResponse rawResponse = httpClient.execute(methodPost);
+                String out = EntityUtils.toString(rawResponse.getEntity());
                 transNo = Integer.parseInt(out);
                 System.out.println("Loaded transaction number");
 
@@ -115,7 +91,7 @@ public class POSApplication extends Application {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                Platform.runLater(() -> launchError(new Stage(), "Failed to launch POS: " + e.getMessage()));
+                Platform.runLater(() -> launchError(new Stage(), "Failed to launch POS: " + (e.getMessage().startsWith("C:") ? "data.json doesn't exist or is corrupted." : e.getLocalizedMessage())));
             } finally {
                 if (splashStage != null) { Platform.runLater(splashStage::close); }
             }
@@ -173,16 +149,7 @@ public class POSApplication extends Application {
     }
 
     public static void buzzer(String type) {
-        new Thread(() -> {
-            try {
-                HttpClient httpClient = HttpClientBuilder.create().build();
-                HttpGet method = new HttpGet("http://localhost:5001/buzzer/" + type);
 
-                httpClient.execute(method);
-            } catch (Exception e) {
-                System.out.println("Buzzer failed: " + e.getMessage());
-            }
-        }).start();
     }
 
     public static void launchError(Stage stage, String message) {
@@ -210,10 +177,10 @@ public class POSApplication extends Application {
 
             // Load categories
             StringEntity requestEntity = new StringEntity(
-                    "{\"token\":\"" + accessToken + "\"}",
+                    "{\"token\":\"" + localData.getToken() + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost methodPost = new HttpPost(backendUrl + "/stock/categories");
+            HttpPost methodPost = new HttpPost(localData.getBackend() + "/stock/categories");
             methodPost.setEntity(requestEntity);
             HttpResponse rawResponse = httpClient.execute(methodPost);
             String out = EntityUtils.toString(rawResponse.getEntity());
@@ -225,10 +192,10 @@ public class POSApplication extends Application {
 
             // Load stock
             requestEntity = new StringEntity(
-                    "{\"token\":\"" + accessToken + "\"}",
+                    "{\"token\":\"" + localData.getToken() + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            methodPost = new HttpPost(backendUrl + "/stock/items");
+            methodPost = new HttpPost(localData.getBackend() + "/stock/items");
             methodPost.setEntity(requestEntity);
             rawResponse = httpClient.execute(methodPost);
             out = EntityUtils.toString(rawResponse.getEntity());
@@ -238,10 +205,10 @@ public class POSApplication extends Application {
 
             // Load operators
             requestEntity = new StringEntity(
-                    "{\"store\": \"" + store + "\", \"token\":\"" + accessToken + "\"}",
+                    "{\"store\": \"" + localData.getStore() + "\", \"token\":\"" + localData.getToken() + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            methodPost = new HttpPost(backendUrl + "/bo/listoperators");
+            methodPost = new HttpPost(localData.getBackend() + "/bo/listoperators");
             methodPost.setEntity(requestEntity);
             rawResponse = httpClient.execute(methodPost);
             out = EntityUtils.toString(rawResponse.getEntity());
@@ -297,17 +264,17 @@ public class POSApplication extends Application {
 
             StringEntity requestEntity = new StringEntity(
                     "{"
-                            + "\"store\": \"" + store
+                            + "\"store\": \"" + localData.getStore()
                             + "\", \"date\": \"" + Formatters.dateFormatter.format(LocalDateTime.now())
-                            + "\", \"reg\": \"" + register
+                            + "\", \"reg\": \"" + localData.getReg()
                             + "\", \"oper\": \"" + operator.getOperatorId()
                             + "\", \"items\": \"" + items
                             + "\", \"total\": \"" + transaction.getBasketTotal()
-                            + "\", \"token\": \"" + accessToken
+                            + "\", \"token\": \"" + localData.getToken()
                             + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost(backendUrl + "/pos/suspend");
+            HttpPost postMethod = new HttpPost(localData.getBackend() + "/pos/suspend");
             postMethod.setEntity(requestEntity);
             HttpResponse rawResponse = httpClient.execute(postMethod);
 
@@ -352,7 +319,7 @@ public class POSApplication extends Application {
             receiptQuestion.getButtonTypes().setAll(yesButton, new ButtonType("No", ButtonBar.ButtonData.NO));
             receiptQuestion.showAndWait().ifPresent(buttonType -> {
                 if (buttonType == yesButton) {
-                    printReceipt(store, register, transNo, operator.getOperatorId(), Formatters.dateTimeFormatter.format(LocalDateTime.now()), POSApplication.gson.toJson(transaction), "NA", false);
+                    printReceipt(localData.getStore(), localData.getReg(), transNo, operator.getOperatorId(), Formatters.dateTimeFormatter.format(LocalDateTime.now()), POSApplication.gson.toJson(transaction), "NA", false);
                     transaction.log("RECEIPT PRINTED");
                 } else {
                     transaction.log("RECEIPT **DECLINED**");
@@ -370,10 +337,10 @@ public class POSApplication extends Application {
 
         StringEntity requestEntity = new StringEntity(
                 "{"
-                        + "\"store\": \"" + store
+                        + "\"store\": \"" + localData.getStore()
                         + "\",\"date\": \"" + Formatters.dateFormatter.format(LocalDateTime.now())
                         + "\", \"time\": \"" + Formatters.timeFormatter.format(LocalDateTime.now())
-                        + "\", \"register\": \"" + register
+                        + "\", \"register\": \"" + localData.getReg()
                         + "\", \"oper\": \"" + operator.getOperatorId()
                         + "\", \"trans\": \"" + transaction.getId()
                         + "\", \"type\": \"" + transaction.determineTransType().toString()
@@ -381,11 +348,11 @@ public class POSApplication extends Application {
                         + "\", \"data\": \"" + data
                         + "\", \"total\": \"" + Formatters.decimalFormatter.format(transaction.getBasketTotal())
                         + "\", \"methods\": \"" + methods
-                        + "\", \"token\": \"" + accessToken
+                        + "\", \"token\": \"" + localData.getToken()
                         + "\"}",
                 ContentType.APPLICATION_JSON);
 
-        HttpPost postMethod = new HttpPost(backendUrl + "/pos/submit");
+        HttpPost postMethod = new HttpPost(localData.getBackend() + "/pos/submit");
         postMethod.setEntity(requestEntity);
 
         HttpResponse rawResponse = httpClient.execute(postMethod);
@@ -403,29 +370,7 @@ public class POSApplication extends Application {
     }
 
     public void printReceipt(int store, int register, int transNo, String operator, String formattedDate, String unformattedItems, String paydata, boolean copy) {
-        try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
-            String items = unformattedItems.replaceAll("\"", "\\\\\"");
-            StringEntity requestEntity = new StringEntity(
-                    "{"
-                            + "\"store\": \"" + store
-                            + "\", \"reg\": \"" + register
-                            + "\", \"trans\": \"" + transNo
-                            + "\", \"oper\": \"" + operator
-                            + "\", \"datetime\": \"" + formattedDate
-                            + "\", \"items\": \"" + items
-                            + "\", \"paydata\": \"" + paydata
-                            + "\", \"copy\": " + copy
-                            + "}",
-                    ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost("http://localhost:5001/print/receipt");
-            postMethod.setEntity(requestEntity);
-
-            HttpResponse rawResponse = httpClient.execute(postMethod);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public boolean managerLoginRequest(String actionId) {
@@ -513,10 +458,10 @@ public class POSApplication extends Application {
             HttpClient httpClient = HttpClientBuilder.create().build();
 
             StringEntity requestEntity = new StringEntity(
-                    "{\"user\":\"" + username + "\",\"password\":\"" + password + "\", \"token\":\"" + POSApplication.getInstance().accessToken + "\"}",
+                    "{\"user\":\"" + username + "\",\"password\":\"" + password + "\", \"token\":\"" + localData.getToken() + "\"}",
                     ContentType.APPLICATION_JSON);
 
-            HttpPost postMethod = new HttpPost(backendUrl + "/pos/login");
+            HttpPost postMethod = new HttpPost(localData.getBackend() + "/pos/login");
             postMethod.setEntity(requestEntity);
 
             HttpResponse rawResponse = httpClient.execute(postMethod);
