@@ -9,6 +9,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
@@ -137,6 +138,7 @@ public class POSApplication extends Application {
             FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("login.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 1920, 1080);
             primaryStage.setTitle("Bubbletill POS 22.0.1");
+            primaryStage.getIcons().add(new Image(POSApplication.class.getResourceAsStream("icon.png")));
             primaryStage.setScene(scene);
             primaryStage.initStyle(StageStyle.UNDECORATED);
             primaryStage.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
@@ -286,6 +288,7 @@ public class POSApplication extends Application {
 
     public void submit() throws Exception {
         double change = 0;
+        TransactionType transType = transaction.determineTransType();
 
         if (transaction.getTender().containsKey(PaymentType.CASH)) {
             cashInDraw += transaction.getTender().get(PaymentType.CASH);
@@ -310,7 +313,7 @@ public class POSApplication extends Application {
             transaction.log("CHANGE £" + Formatters.decimalFormatter.format(change));
         }
 
-        if (transaction.determineTransType() != TransactionType.VOID) {
+        if (transType.promptReceipt()) {
             Alert receiptQuestion = new Alert(Alert.AlertType.CONFIRMATION);
             receiptQuestion.setTitle("Receipt");
             receiptQuestion.setHeaderText("Would the customer like a receipt?");
@@ -343,7 +346,7 @@ public class POSApplication extends Application {
                         + "\", \"register\": \"" + localData.getReg()
                         + "\", \"oper\": \"" + operator.getOperatorId()
                         + "\", \"trans\": \"" + transaction.getId()
-                        + "\", \"type\": \"" + transaction.determineTransType().toString()
+                        + "\", \"type\": \"" + transType
                         + "\", \"basket\": \"" + items
                         + "\", \"data\": \"" + data
                         + "\", \"total\": \"" + Formatters.decimalFormatter.format(transaction.getBasketTotal())

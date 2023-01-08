@@ -44,7 +44,6 @@ public class OpeningFloatController {
 
     @FXML
     public void initialize() {
-        System.out.println("OF init");
         declareOpeningFloat.setVisible(true);
         openingFloatYesButton.setOnAction(e -> { onYes(); });
         openingFloatNoButton.setOnAction(e -> { onNo(); });

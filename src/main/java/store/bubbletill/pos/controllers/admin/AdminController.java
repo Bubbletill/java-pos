@@ -1,4 +1,4 @@
-package store.bubbletill.pos.controllers;
+package store.bubbletill.pos.controllers.admin;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -6,6 +6,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import store.bubbletill.pos.POSApplication;
+import store.bubbletill.pos.controllers.POSContainerController;
 
 public class AdminController {
 
@@ -18,6 +19,7 @@ public class AdminController {
     @FXML private Button xReadButton;
     @FXML private Button resyncButton;
     @FXML private Button backButton;
+    @FXML private Button backOfficeButton;
 
     @FXML
     private void initialize() {
@@ -26,11 +28,22 @@ public class AdminController {
         xReadButton.setOnAction(e -> { onXReadPress(); });
         resyncButton.setOnAction(e -> { onResyncPress(); });
         backButton.setOnAction(e -> { onBackPress(); });
+        backOfficeButton.setOnAction(e -> { onBackOfficePress(); });
+
+        if (!app.operator.isManager())
+            backOfficeButton.setVisible(false);
     }
 
     private void onNoSalePress() { }
 
-    private void onPostVoidPress() { }
+    private void onPostVoidPress() {
+        if (!app.managerLoginRequest("Post Void")) {
+            controller.showError("Insufficient permission.");
+            return;
+        }
+
+        controller.updateSubScene("postvoid");
+    }
 
     private void onXReadPress() {
         if (!app.managerLoginRequest("X Read")) {
@@ -70,6 +83,15 @@ public class AdminController {
                 alert.showAndWait();
             }
         });
+    }
+
+    private void onBackOfficePress() {
+        try {
+            Runtime.getRuntime().exec("javaw -jar C:\\bubbletill\\bo.jar");
+        } catch (Exception e) {
+            controller.showError("BO failed: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void onBackPress() {

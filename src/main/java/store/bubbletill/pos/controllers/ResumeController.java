@@ -4,7 +4,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.Pane;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -28,7 +27,6 @@ public class ResumeController {
 
     @FXML
     private void initialize() {
-        System.out.println("resume init");
         backButton.setVisible(true);
 
         resumeTable.getColumns().get(0).setCellValueFactory(new PropertyValueFactory<>("date"));

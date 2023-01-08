@@ -35,7 +35,6 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        System.out.println("LoginController Initialized");
         userIdForm.requestFocus();
         errorPane.setVisible(false);
     }

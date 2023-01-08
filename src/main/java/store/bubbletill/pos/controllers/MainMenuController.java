@@ -19,8 +19,7 @@ public class MainMenuController {
     private final POSApplication app = POSApplication.getInstance();
     private final POSContainerController controller = POSContainerController.getInstance();
 
-    @FXML
-    private Pane mainHome;
+    @FXML private Pane mainHome;
     @FXML private Pane preTransButtons;
     @FXML private Pane transStartedButtons;
     @FXML private Pane tenderButtons;
@@ -51,9 +50,11 @@ public class MainMenuController {
 
     @FXML private Button homeResumeButton;
 
+    @FXML private Pane saleInfoPane;
+    @FXML private Pane tenderInfoPane;
+
     @FXML
     private void initialize() {
-        System.out.println("Main menu initalized");
         mainHome.setVisible(true);
         preTransButtons.setVisible(true);
         transStartedButtons.setVisible(false);
@@ -61,6 +62,9 @@ public class MainMenuController {
         transModButtons.setVisible(false);
         homeCostsPane.setVisible(true);
         homeCostsTenderPane.setVisible(false);
+
+        saleInfoPane.setVisible(true);
+        tenderInfoPane.setVisible(false);
 
         basketListView.setCellFactory(cell -> new ListCell<>() {
             @Override
@@ -107,6 +111,8 @@ public class MainMenuController {
             transStartedButtons.setVisible(true);
             preTransButtons.setVisible(false);
         }
+
+        resetItemInputFields();
     }
 
     private void onLogoutButtonPress() {
@@ -152,6 +158,8 @@ public class MainMenuController {
         categoryInputLabel.setText(data.getMessage().toUpperCase());
         categoryInputLabel.setVisible(true);
         categoryInputField.setDisable(true);
+        itemcodeInputField.setDisable(true);
+        itemcodeInputField.setDisable(false);
         itemcodeInputField.requestFocus();
     }
 
@@ -206,8 +214,8 @@ public class MainMenuController {
         categoryInputLabel.setVisible(false);
         categoryInputField.setText("");
         categoryInputField.setDisable(false);
-        categoryInputField.setEditable(true);
         itemcodeInputField.setText("");
+        itemcodeInputField.setDisable(true);
         categoryInputField.requestFocus();
     }
 
@@ -220,6 +228,8 @@ public class MainMenuController {
         homeCostsTenderPane.setVisible(true);
         transStartedButtons.setVisible(false);
         homeItemInputPane.setVisible(false);
+        saleInfoPane.setVisible(false);
+        tenderInfoPane.setVisible(true);
         homeTenderRemainLabel.setText("£" + Formatters.decimalFormatter.format(app.transaction.getBasketTotal()));
         app.transaction.log("Going to tender, Subtotal £" + Formatters.decimalFormatter.format(app.transaction.getBasketSubTotal()));
     }
@@ -299,6 +309,8 @@ public class MainMenuController {
         homeCostsTenderPane.setVisible(false);
         tenderButtons.setVisible(false);
         homeItemInputPane.setVisible(true);
+        saleInfoPane.setVisible(true);
+        tenderInfoPane.setVisible(false);
         categoryInputLabel.requestFocus();
     }
 

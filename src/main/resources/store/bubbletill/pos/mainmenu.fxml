@@ -9,18 +9,12 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1010.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="store.bubbletill.pos.controllers.MainMenuController">
    <children>
       <Pane fx:id="mainHome" prefHeight="1010.0" prefWidth="1920.0">
          <children>
             <Pane fx:id="homeItemInputPane" layoutX="709.0" layoutY="83.0" prefHeight="567.0" prefWidth="986.0">
                <children>
-                  <Label fx:id="categoryInputLabel" alignment="TOP_LEFT" layoutX="249.0" layoutY="41.0" prefHeight="119.0" prefWidth="737.0" text="CATEGORY" visible="false" wrapText="true">
-                     <font>
-                        <Font name="System Bold" size="36.0" />
-                     </font>
-                  </Label>
                   <Label layoutX="14.0" layoutY="14.0" prefHeight="35.0" prefWidth="224.0" text="Category">
                      <font>
                         <Font size="24.0" />
@@ -41,6 +35,11 @@
                         <Font size="18.0" />
                      </font>
                   </TextField>
+                  <Label fx:id="categoryInputLabel" alignment="TOP_LEFT" layoutX="14.0" layoutY="-18.0" prefHeight="70.0" prefWidth="737.0" text="CATEGORY" visible="false" wrapText="true">
+                     <font>
+                        <Font name="System Bold Italic" size="26.0" />
+                     </font>
+                  </Label>
                </children>
             </Pane>
             <Label layoutX="31.0" layoutY="14.0" text="Basket">
@@ -176,6 +175,44 @@
                   </Label>
                </children>
             </Pane>
+         </children>
+      </Pane>
+      <Pane fx:id="saleInfoPane" layoutX="1113.0" layoutY="14.0" prefHeight="177.0" prefWidth="656.0" style="-fx-background-color: #abdfff;">
+         <children>
+            <Label layoutX="310.0" layoutY="7.0" text="Sale" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="30.0" />
+               </font>
+            </Label>
+            <Label layoutX="11.0" layoutY="48.0" prefHeight="53.0" prefWidth="656.0" text="Scan or key-in the category and item code for each item presented. Once all items have been scanned, proceed to collect payment by pressing Tender." textOverrun="CLIP" wrapText="true">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+            <Label layoutX="11.0" layoutY="114.0" prefHeight="53.0" prefWidth="641.0" text="If you must leave the register at any point, suspend and log out by pressing Suspend. To resume, scan the barcode printed or press Resume." wrapText="true">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+         </children>
+      </Pane>
+      <Pane fx:id="tenderInfoPane" layoutX="1113.0" layoutY="14.0" prefHeight="177.0" prefWidth="656.0" style="-fx-background-color: #abdfff;" visible="false">
+         <children>
+            <Label layoutX="310.0" layoutY="7.0" text="Tender" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="30.0" />
+               </font>
+            </Label>
+            <Label layoutX="11.0" layoutY="48.0" prefHeight="53.0" prefWidth="656.0" text="Select the payment type and enter the amount given by the customer. To void any existing tender, press Void Tender." textOverrun="CLIP" wrapText="true">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+            <Label layoutX="11.0" layoutY="114.0" prefHeight="53.0" prefWidth="641.0" text="Once the transaction is complete, ask the customer if they would like a receipt and press the according button." wrapText="true">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
          </children>
       </Pane>
    </children>

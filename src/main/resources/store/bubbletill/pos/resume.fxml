@@ -5,6 +5,7 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1010.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="store.bubbletill.pos.controllers.ResumeController">
@@ -14,12 +15,12 @@
             <Font size="48.0" />
          </font>
       </Label>
-      <Button fx:id="resumeButton" layoutX="1717.0" layoutY="877.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Resume">
+      <Button fx:id="resumeButton" layoutX="1722.0" layoutY="890.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Resume">
          <font>
             <Font size="24.0" />
          </font>
       </Button>
-      <Button fx:id="backButton" layoutX="1717.0" layoutY="769.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Back">
+      <Button fx:id="backButton" layoutX="1722.0" layoutY="777.0" mnemonicParsing="false" prefHeight="96.0" prefWidth="168.0" text="Back">
          <font>
             <Font size="24.0" />
          </font>
@@ -32,5 +33,19 @@
             <TableColumn prefWidth="165.0" text="Total" />
          </columns>
       </TableView>
+      <Pane layoutX="1113.0" layoutY="14.0" prefHeight="108.0" prefWidth="656.0" style="-fx-background-color: #abdfff;">
+         <children>
+            <Label layoutX="284.0" layoutY="9.0" text="Resume" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="30.0" />
+               </font>
+            </Label>
+            <Label layoutX="11.0" layoutY="48.0" prefHeight="53.0" prefWidth="656.0" text="To resume a suspended transaction, select an entry from the table and press Resume." textOverrun="CLIP" wrapText="true">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+         </children>
+      </Pane>
    </children>
 </AnchorPane>

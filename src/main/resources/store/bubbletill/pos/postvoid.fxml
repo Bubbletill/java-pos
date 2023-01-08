@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1010.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="store.bubbletill.pos.controllers.admin.PostVoidController">
+   <children>
+      <Pane layoutX="1113.0" layoutY="14.0" prefHeight="177.0" prefWidth="656.0" style="-fx-background-color: #ffe0e0;">
+         <children>
+            <Label layoutX="260.0" layoutY="7.0" text="Post Void" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="30.0" />
+               </font>
+            </Label>
+            <Label layoutX="11.0" layoutY="48.0" prefHeight="53.0" prefWidth="656.0" text="Post-voiding a transaction will reverse the original tender and invalidate the customer's receipt. This cannot be actioned on transactions containing card payments. " textOverrun="CLIP" wrapText="true">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+            <Label layoutX="11.0" layoutY="114.0" prefHeight="53.0" prefWidth="641.0" text="To post void a transaction, please supply the register number, transaction number, date, and press Accept." wrapText="true">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+         </children>
+      </Pane>
+      <Label layoutX="31.0" layoutY="14.0" text="Please enter transaction details">
+         <font>
+            <Font size="48.0" />
+         </font>
+      </Label>
+      <Label layoutX="31.0" layoutY="125.0" text="Register ">
+         <font>
+            <Font size="28.0" />
+         </font>
+      </Label>
+      <TextField fx:id="registerForm" layoutX="207.0" layoutY="123.0">
+         <font>
+            <Font size="20.0" />
+         </font>
+      </TextField>
+      <Label layoutX="31.0" layoutY="200.0" text="Transaction">
+         <font>
+            <Font size="28.0" />
+         </font>
+      </Label>
+      <TextField fx:id="transForm" layoutX="207.0" layoutY="200.0">
+         <font>
+            <Font size="20.0" />
+         </font>
+      </TextField>
+      <Label layoutX="31.0" layoutY="277.0" text="Date">
+         <font>
+            <Font size="28.0" />
+         </font>
+      </Label>
+      <DatePicker fx:id="dateForm" layoutX="207.0" layoutY="277.0" prefHeight="40.0" prefWidth="249.0" />
+      <Button layoutX="26.0" layoutY="890.0" mnemonicParsing="false" onAction="#onAcceptPress" prefHeight="96.0" prefWidth="168.0" text="Accept">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Button>
+      <Button layoutX="217.0" layoutY="890.0" mnemonicParsing="false" onAction="#onLastPress" prefHeight="96.0" prefWidth="168.0" text="Last Transaction" textAlignment="CENTER" wrapText="true">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Button>
+      <Button layoutX="1722.0" layoutY="890.0" mnemonicParsing="false" onAction="#onBackPress" prefHeight="96.0" prefWidth="168.0" text="Back">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Button>
+   </children>
+</AnchorPane>
