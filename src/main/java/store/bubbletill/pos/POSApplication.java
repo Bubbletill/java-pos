@@ -42,6 +42,7 @@ public class POSApplication extends Application {
     public static Gson gson = new Gson();
     public Stage stage;
     public Timer dateTimeTimer;
+    public DatabaseManager databaseManager;
 
     // General Data
     public OperatorData operator;
@@ -70,20 +71,12 @@ public class POSApplication extends Application {
             try {
                 Reader dataReader = Files.newBufferedReader(Paths.get("C:\\bubbletill\\data.json"));
                 localData = gson.fromJson(dataReader, LocalData.class);
+                databaseManager = new DatabaseManager(localData.getDbUsername(), localData.getDbPassword(), localData);
 
-                // Load trans number
-                HttpClient httpClient = HttpClientBuilder.create().build();
-
-                StringEntity requestEntity = new StringEntity(
-                        "{\"store\":\"" + localData.getStore() + "\",\"reg\":\"" + localData.getReg() + "\", \"token\":\"" + localData.getToken() + "\"}",
-                        ContentType.APPLICATION_JSON);
-
-                HttpPost methodPost = new HttpPost(localData.getBackend() + "/pos/today");
-                methodPost.setEntity(requestEntity);
-                HttpResponse rawResponse = httpClient.execute(methodPost);
-                String out = EntityUtils.toString(rawResponse.getEntity());
-                transNo = Integer.parseInt(out);
-                System.out.println("Loaded transaction number");
+                transNo = databaseManager.getTransactionNumber();
+                if (transNo == -50) {
+                    throw new Exception("Failed to get transaction number from database.");
+                }
 
                 if (!syncDatabase()) { // Load categories, stock and operators
                     Platform.runLater(() -> launchError(new Stage(), "Failed to launch POS: Database failed to sync. Please contact your system administrator."));
@@ -175,50 +168,24 @@ public class POSApplication extends Application {
     public boolean syncDatabase() {
         System.out.println("Syncing database");
         try {
-            HttpClient httpClient = HttpClientBuilder.create().build();
+            ArrayList<CategoryData> categoryData = databaseManager.getCategories();
+            ArrayList<StockData> stockData = databaseManager.getStock();
+            ArrayList<OperatorData> operatorData = databaseManager.getOperators();
 
-            // Load categories
-            StringEntity requestEntity = new StringEntity(
-                    "{\"token\":\"" + localData.getToken() + "\"}",
-                    ContentType.APPLICATION_JSON);
+            if (categoryData == null || stockData == null || operatorData == null)
+                return false;
 
-            HttpPost methodPost = new HttpPost(localData.getBackend() + "/stock/categories");
-            methodPost.setEntity(requestEntity);
-            HttpResponse rawResponse = httpClient.execute(methodPost);
-            String out = EntityUtils.toString(rawResponse.getEntity());
-            CategoryData[] categoryData = gson.fromJson(out, CategoryData[].class);
-            for (CategoryData c : categoryData) {
-                categories.put(c.getId(), c.getDescription());
-            }
-            System.out.println("Loaded categories");
+            for (CategoryData cd : categoryData)
+                categories.put(cd.getId(), cd.getDescription());
+            System.out.println(categories);
 
-            // Load stock
-            requestEntity = new StringEntity(
-                    "{\"token\":\"" + localData.getToken() + "\"}",
-                    ContentType.APPLICATION_JSON);
 
-            methodPost = new HttpPost(localData.getBackend() + "/stock/items");
-            methodPost.setEntity(requestEntity);
-            rawResponse = httpClient.execute(methodPost);
-            out = EntityUtils.toString(rawResponse.getEntity());
-            StockData[] stockData = gson.fromJson(out, StockData[].class);
-            stock.addAll(Arrays.asList(stockData));
-            System.out.println("Loaded stock");
+            stock.addAll(stockData);
+            System.out.println(stock);
 
-            // Load operators
-            requestEntity = new StringEntity(
-                    "{\"store\": \"" + localData.getStore() + "\", \"token\":\"" + localData.getToken() + "\"}",
-                    ContentType.APPLICATION_JSON);
-
-            methodPost = new HttpPost(localData.getBackend() + "/bo/listoperators");
-            methodPost.setEntity(requestEntity);
-            rawResponse = httpClient.execute(methodPost);
-            out = EntityUtils.toString(rawResponse.getEntity());
-            OperatorData[] operatorData = gson.fromJson(out, OperatorData[].class);
-            for (OperatorData o : operatorData) {
-                operators.put(o.getOperatorId(), o);
-            }
-            System.out.println("Loaded operators");
+            for (OperatorData od : databaseManager.getOperators())
+                operators.put(od.getId(), od);
+            System.out.println(operators);
 
             System.out.println("Sync complete");
             return true;
@@ -269,7 +236,7 @@ public class POSApplication extends Application {
                             + "\"store\": \"" + localData.getStore()
                             + "\", \"date\": \"" + Formatters.dateFormatter.format(LocalDateTime.now())
                             + "\", \"reg\": \"" + localData.getReg()
-                            + "\", \"oper\": \"" + operator.getOperatorId()
+                            + "\", \"oper\": \"" + operator.getId()
                             + "\", \"items\": \"" + items
                             + "\", \"total\": \"" + transaction.getBasketTotal()
                             + "\", \"token\": \"" + localData.getToken()
@@ -322,7 +289,7 @@ public class POSApplication extends Application {
             receiptQuestion.getButtonTypes().setAll(yesButton, new ButtonType("No", ButtonBar.ButtonData.NO));
             receiptQuestion.showAndWait().ifPresent(buttonType -> {
                 if (buttonType == yesButton) {
-                    printReceipt(localData.getStore(), localData.getReg(), transNo, operator.getOperatorId(), Formatters.dateTimeFormatter.format(LocalDateTime.now()), POSApplication.gson.toJson(transaction), "NA", false);
+                    printReceipt(localData.getStore(), localData.getReg(), transNo, operator.getId(), Formatters.dateTimeFormatter.format(LocalDateTime.now()), POSApplication.gson.toJson(transaction), "NA", false);
                     transaction.log("RECEIPT PRINTED");
                 } else {
                     transaction.log("RECEIPT **DECLINED**");
@@ -344,7 +311,7 @@ public class POSApplication extends Application {
                         + "\",\"date\": \"" + Formatters.dateFormatter.format(LocalDateTime.now())
                         + "\", \"time\": \"" + Formatters.timeFormatter.format(LocalDateTime.now())
                         + "\", \"register\": \"" + localData.getReg()
-                        + "\", \"oper\": \"" + operator.getOperatorId()
+                        + "\", \"oper\": \"" + operator.getId()
                         + "\", \"trans\": \"" + transaction.getId()
                         + "\", \"type\": \"" + transType
                         + "\", \"basket\": \"" + items

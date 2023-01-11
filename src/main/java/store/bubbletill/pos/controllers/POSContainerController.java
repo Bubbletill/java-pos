@@ -75,7 +75,7 @@ public class POSContainerController {
         statusLabel.setText((app.workingOnline ? "Online" : "Offline"));
         registerLabel.setText("" + app.localData.getReg());
         transactionLabel.setText("" + app.transNo);
-        operatorLabel.setText(app.operator.getOperatorId());
+        operatorLabel.setText(app.operator.getId());
     }
 
     public static POSContainerController getInstance() {
@@ -140,6 +140,8 @@ public class POSContainerController {
         }
 
         app.transNo++;
+        if (app.transNo == 10000)
+            app.transNo = 1;
         app.transaction = new Transaction(app.transNo);
         app.transaction.setBasket(resumeData.getBasket());
         app.transaction.setLogs(resumeData.getLogs());
@@ -188,7 +190,7 @@ public class POSContainerController {
             return;
         }
 
-        XReadData data = new XReadData(app.localData.getStore(), app.localData.getReg(), app.operator.getOperatorId());
+        XReadData data = new XReadData(app.localData.getStore(), app.localData.getReg(), app.operator.getId());
 
         data.setTransactionCount(listData.length);
         data.setSystemCashInDraw(app.cashInDraw);

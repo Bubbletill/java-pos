@@ -11,6 +11,7 @@ module store.bubbletill.pos {
     requires org.apache.httpcomponents.httpclient;
     requires org.apache.httpcomponents.httpcore;
     requires commons;
+    requires java.sql;
 
     opens store.bubbletill.pos to javafx.fxml;
     opens store.bubbletill.pos.controllers to javafx.fxml;

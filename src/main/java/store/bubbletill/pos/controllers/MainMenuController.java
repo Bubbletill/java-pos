@@ -194,12 +194,14 @@ public class MainMenuController {
 
         if (app.transaction == null) {
             app.transNo++;
+            if (app.transNo == 10000)
+                app.transNo = 1;
             app.transaction = new Transaction(app.transNo);
             controller.transactionLabel.setText("" + app.transNo);
             transStartedButtons.setVisible(true);
             preTransButtons.setVisible(false);
 
-            app.transaction.log("Transaction " + app.transNo + " started " + Formatters.dateTimeFormatter.format(LocalDateTime.now()));
+            app.transaction.log("Transaction " + app.transNo + " started by " + app.operator.getName() + " at " + Formatters.dateTimeFormatter.format(LocalDateTime.now()));
             app.transaction.log("Transaction type of " + app.transaction.determineTransType());
         }
 

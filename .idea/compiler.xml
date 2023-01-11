@@ -6,11 +6,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="BT-POS" />
+        <module name="pos" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="BT-POS" target="18" />
+      <module name="pos" target="18" />
     </bytecodeTargetLevel>
   </component>
 </project>

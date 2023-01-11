@@ -84,7 +84,7 @@ public class LoginController {
                 }
 
                 app.operator = POSApplication.gson.fromJson(out, OperatorData.class);
-                app.operators.put(app.operator.getOperatorId(), app.operator);
+                app.operators.put(app.operator.getId(), app.operator);
             }
 
             FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("poscontainer.fxml"));
