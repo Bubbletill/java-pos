@@ -12,6 +12,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import store.bubbletill.commons.Formatters;
+import store.bubbletill.commons.POSAction;
 import store.bubbletill.commons.PaymentType;
 import store.bubbletill.commons.TransactionListData;
 import store.bubbletill.pos.POSApplication;
@@ -62,7 +63,7 @@ public class OpeningFloatController {
 
     private void onYes() {
         controller.showError(null);
-        if (app.managerLoginRequest("Opening Float")) {
+        if (app.canPerformAction(POSAction.DECLARE_FLOAT)) {
             dofPrompt.setVisible(false);
             dofDeclare.setVisible(true);
         } else {

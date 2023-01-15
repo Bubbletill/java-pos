@@ -92,6 +92,7 @@ public class POSContainerController {
             posSubScene.relocate(0, 70);
             posSubScene.setVisible(true);
             containerAnchor.getChildren().add(posSubScene);
+            showError(null);
         } catch (Exception e) {
             showError("Failed to load sub-scene: " + e.getLocalizedMessage());
             e.printStackTrace();

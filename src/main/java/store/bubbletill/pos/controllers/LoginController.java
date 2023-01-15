@@ -19,6 +19,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import store.bubbletill.commons.POSAction;
 import store.bubbletill.pos.POSApplication;
 import store.bubbletill.commons.ApiRequestData;
 import store.bubbletill.commons.OperatorData;
@@ -85,6 +86,11 @@ public class LoginController {
 
                 app.operator = POSApplication.gson.fromJson(out, OperatorData.class);
                 app.operators.put(app.operator.getId(), app.operator);
+            }
+
+            if (!app.canPerformAction(POSAction.ACCESS)) {
+                showError("Error: You don't have permission to access POS.");
+                return;
             }
 
             FXMLLoader fxmlLoader = new FXMLLoader(POSApplication.class.getResource("poscontainer.fxml"));

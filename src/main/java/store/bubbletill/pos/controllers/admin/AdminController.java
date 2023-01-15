@@ -5,6 +5,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import store.bubbletill.commons.BOAction;
+import store.bubbletill.commons.POSAction;
 import store.bubbletill.pos.POSApplication;
 import store.bubbletill.pos.controllers.POSContainerController;
 
@@ -30,14 +32,14 @@ public class AdminController {
         backButton.setOnAction(e -> { onBackPress(); });
         backOfficeButton.setOnAction(e -> { onBackOfficePress(); });
 
-        if (!app.operator.isManager())
+        if (!app.operator.canPerformAction(app.operatorGroups, BOAction.ACCESS))
             backOfficeButton.setVisible(false);
     }
 
     private void onNoSalePress() { }
 
     private void onPostVoidPress() {
-        if (!app.managerLoginRequest("Post Void")) {
+        if (!app.canPerformAction(POSAction.POST_VOID)) {
             controller.showError("Insufficient permission.");
             return;
         }
@@ -46,7 +48,7 @@ public class AdminController {
     }
 
     private void onXReadPress() {
-        if (!app.managerLoginRequest("X Read")) {
+        if (!app.canPerformAction(POSAction.XREAD)) {
             controller.showError("Insufficient permission.");
             return;
         }
@@ -55,7 +57,7 @@ public class AdminController {
     }
 
     private void onResyncPress() {
-        if (!app.managerLoginRequest("Database Resync")) {
+        if (!app.canPerformAction(POSAction.DB_RESYNC)) {
             controller.showError("Insufficient permission.");
             return;
         }

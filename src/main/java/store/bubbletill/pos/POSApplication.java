@@ -19,7 +19,6 @@ import javafx.stage.StageStyle;
 import javafx.util.Pair;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -60,6 +59,7 @@ public class POSApplication extends Application {
     public HashMap<Integer, String> categories = new HashMap<>();
     public ArrayList<StockData> stock = new ArrayList<>();
     public HashMap<String, OperatorData> operators = new HashMap<>();
+    public HashMap<Integer, OperatorGroup> operatorGroups = new HashMap<>();
 
     @Override
     public void start(Stage initStage) throws IOException {
@@ -171,21 +171,21 @@ public class POSApplication extends Application {
             ArrayList<CategoryData> categoryData = databaseManager.getCategories();
             ArrayList<StockData> stockData = databaseManager.getStock();
             ArrayList<OperatorData> operatorData = databaseManager.getOperators();
+            HashMap<Integer, OperatorGroup> operatorGroups = databaseManager.getOperatorGroups();
 
-            if (categoryData == null || stockData == null || operatorData == null)
+            if (categoryData == null || stockData == null || operatorData == null || operatorGroups == null)
                 return false;
 
             for (CategoryData cd : categoryData)
                 categories.put(cd.getId(), cd.getDescription());
-            System.out.println(categories);
 
 
             stock.addAll(stockData);
-            System.out.println(stock);
+
+            this.operatorGroups = operatorGroups;
 
             for (OperatorData od : databaseManager.getOperators())
                 operators.put(od.getId(), od);
-            System.out.println(operators);
 
             System.out.println("Sync complete");
             return true;
@@ -343,14 +343,17 @@ public class POSApplication extends Application {
 
     }
 
-    public boolean managerLoginRequest(String actionId) {
-        if (operator.isManager())
+    public boolean canPerformAction(POSAction actionId) {
+        if (operator.canPerformAction(operatorGroups, actionId))
             return true;
+
+        if (!actionId.isLoginIfNoPermission())
+            return false;
 
         // Create the custom dialog.
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Authentication");
-        dialog.setHeaderText("Manager permission is required.\nPlease sign-in to authenticate " + actionId + ".");
+        dialog.setHeaderText("Manager permission is required.\nPlease sign-in to authenticate " + actionId.getDisplayName() + ".");
 
 
         // Set the button types.
@@ -406,23 +409,30 @@ public class POSApplication extends Application {
 
         Optional<Pair<String, String>> result = dialog.showAndWait();
 
-        boolean isManager = result.filter(stringStringPair -> isManager(stringStringPair.getKey(), stringStringPair.getValue())).isPresent();
+        if (!result.isPresent())
+            return false;
 
-        if (isManager && transaction != null)
-            transaction.addManagerAction(actionId, result.get().getKey());
+        OperatorData od = getOperatorData(result.get().getKey(), result.get().getValue());
+        if (od == null)
+            return false;
 
-        return isManager;
+        boolean canDoAction = od.canPerformAction(operatorGroups, actionId);
+
+        if (canDoAction && transaction != null)
+            transaction.addManagerAction(actionId.getDisplayName(), result.get().getKey());
+
+        return canDoAction;
     }
 
-    private boolean isManager(String username, String password) {
+    private OperatorData getOperatorData(String username, String password) {
         try {
             if (operators.containsKey(username)) {
                 OperatorData od = operators.get(username);
                 if (!od.getPassword().equals(password)) {
-                    return false;
+                    return null;
                 }
 
-                return od.isManager();
+                return od;
             }
 
             HttpClient httpClient = HttpClientBuilder.create().build();
@@ -440,15 +450,15 @@ public class POSApplication extends Application {
             ApiRequestData data = POSApplication.gson.fromJson(out, ApiRequestData.class);
 
             if (!data.isSuccess()) {
-                return false;
+                return null;
             }
 
             OperatorData od = POSApplication.gson.fromJson(out, OperatorData.class);
 
-            return od.isManager();
+            return od;
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 }

@@ -246,10 +246,20 @@ public class MainMenuController {
     }
 
     private void onResumeButtonPress() {
+        if (!app.canPerformAction(POSAction.RESUME)) {
+            controller.showError("Insufficient permission.");
+            return;
+        }
+
         controller.updateSubScene("resume");
     }
 
     private void onSuspendButtonPress() {
+        if (!app.canPerformAction(POSAction.SUSPEND)) {
+            controller.showError("Insufficient permission.");
+            return;
+        }
+
         app.suspendTransaction();
     }
 
@@ -319,7 +329,7 @@ public class MainMenuController {
     // Trans Mod
     private void onTmVoidButtonPress() {
 
-        if (!app.managerLoginRequest("Transaction Void")) {
+        if (!app.canPerformAction(POSAction.VOID_TRANSACTION)) {
             controller.showError("Insufficient permission.");
             return;
         }
